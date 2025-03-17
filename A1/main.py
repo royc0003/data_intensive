@@ -20,7 +20,7 @@ def get_db_connection():
 class Book(BaseModel):
     ISBN: constr(min_length=10, max_length=20)  # ISBN is a string (10-20 chars)
     title: str
-    author: str
+    Author: str
     description: str
     genre: str
     price: condecimal(gt=0, decimal_places=2)  # Enforces price > 0 with 2 decimal places
@@ -44,8 +44,8 @@ def add_book(book: Book):
     try:
         # Insert the new book
         cursor.execute(
-            "INSERT INTO Books (ISBN, title, author, description, genre, price, quantity) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-            (book.ISBN, book.title, book.author, book.description, book.genre, book.price, book.quantity)
+            "INSERT INTO Books (ISBN, title, Author, description, genre, price, quantity) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+            (book.ISBN, book.title, book.Author, book.description, book.genre, book.price, book.quantity)
         )
         conn.commit()
     except mysql.connector.Error as err:
@@ -61,7 +61,7 @@ def add_book(book: Book):
     return {
         "ISBN": book.ISBN,
         "title": book.title,
-        "author": book.author,
+        "Author": book.Author,
         "description": book.description,
         "genre": book.genre,
         "price": book.price,
@@ -87,9 +87,9 @@ def update_book(ISBN: str, book: Book):
         # Update book details
         cursor.execute(
             """UPDATE Books 
-               SET title = %s, author = %s, description = %s, genre = %s, price = %s, quantity = %s
+               SET title = %s, Author = %s, description = %s, genre = %s, price = %s, quantity = %s
                WHERE ISBN = %s""",
-            (book.title, book.author, book.description, book.genre, book.price, book.quantity, ISBN)
+            (book.title, book.Author, book.description, book.genre, book.price, book.quantity, ISBN)
         )
         conn.commit()
     except mysql.connector.Error as err:
@@ -104,7 +104,7 @@ def update_book(ISBN: str, book: Book):
     return {
         "ISBN": ISBN,
         "title": book.title,
-        "author": book.author,
+        "Author": book.Author,
         "description": book.description,
         "genre": book.genre,
         "price": book.price,
