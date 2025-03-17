@@ -183,3 +183,23 @@ def add_customer(customer: CustomerBase, response: Response):
     response.headers["Location"] = f"/customers/{customer_id}"
 
     return CustomerResponse(id=customer_id, **customer.dict())
+
+@app.get("/customers/{id}", response_model=CustomerResponse)
+def get_customer(id: int):
+    if id <= 0:
+        raise HTTPException(status_code=400, detail="Invalid customer ID")
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch customer from database
+    cursor.execute("SELECT * FROM Customers WHERE id = %s", (id,))
+    customer = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    return customer
