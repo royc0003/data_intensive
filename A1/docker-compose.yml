@@ -3,6 +3,7 @@ version: '3.8'
 services:
   api:
     build: .
+    image: ${DOCKER_USERNAME}/bookstore-api:latest
     ports:
       - "8000:8000"
     depends_on:
