@@ -1,20 +1,31 @@
 from fastapi import FastAPI, HTTPException, Header, Response, Query
 from pydantic import BaseModel, constr, condecimal, conint, EmailStr
+from typing import Optional
 import mysql.connector
+from mysql.connector import Error
+import os
+import time
 
 app = FastAPI()
 
-# MySQL Database Connection (Local)
+# MySQL Database Connection using environment variables
 db_config = {
-    "host": "127.0.0.1",  # Use "localhost" or "127.0.0.1"
-    "user": "root",
-    "password": "password",
-    "database": "Bookstore"
+    "host": os.getenv("DB_HOST", "127.0.0.1"),
+    "user": os.getenv("DB_USER", "root"),
+    "password": os.getenv("DB_PASSWORD", "password"),
+    "database": os.getenv("DB_NAME", "Bookstore")
 }
 
-# Function to Connect to MySQL
 def get_db_connection():
-    return mysql.connector.connect(**db_config)
+    retries = 5
+    while retries > 0:
+        try:
+            return mysql.connector.connect(**db_config)
+        except Error as e:
+            retries -= 1
+            if retries == 0:
+                raise e
+            time.sleep(1)  # Wait 1 second before retrying
 
 # Data Model for Validation
 class Book(BaseModel):
@@ -31,7 +42,7 @@ class CustomerBase(BaseModel):
     name: str
     phone: str
     address: str
-    address2: str | None = None  # Optional field
+    address2: Optional[str] = None  # Optional field
     city: str
     state: constr(min_length=2, max_length=2)  # Ensures state is exactly 2 letters
     zipcode: str
