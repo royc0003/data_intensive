@@ -10,8 +10,8 @@ app = FastAPI()
 
 # MySQL Database Connection using environment variables
 db_config = {
-    "host": os.getenv("DB_HOST", "127.0.0.1"),
-    "user": os.getenv("DB_USER", "root"),
+    "host": os.getenv("DB_HOST", "bookstore-db-dev-instance2.cnomgymiqut0.us-east-1.rds.amazonaws.com:3306"),
+    "user": os.getenv("DB_USER", "Bookstore"),
     "password": os.getenv("DB_PASSWORD", "password"),
     "database": os.getenv("DB_NAME", "Bookstore")
 }
