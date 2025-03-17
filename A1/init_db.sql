@@ -4,7 +4,7 @@ USE Bookstore;
 CREATE TABLE IF NOT EXISTS Books (
     ISBN VARCHAR(20) PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    author VARCHAR(255) NOT NULL,
+    Author VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     genre VARCHAR(100) NOT NULL,
     price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
