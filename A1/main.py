@@ -110,3 +110,21 @@ def update_book(ISBN: str, book: Book):
         "price": book.price,
         "quantity": book.quantity
     }
+    
+@app.get("/books/{ISBN}")
+@app.get("/books/isbn/{ISBN}")
+def get_book(ISBN: str):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch book from database
+    cursor.execute("SELECT * FROM Books WHERE ISBN = %s", (ISBN,))
+    book = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    return book
