@@ -1,5 +1,5 @@
-from fastapi import FastAPI, HTTPException, Header
-from pydantic import BaseModel, constr, condecimal, conint
+from fastapi import FastAPI, HTTPException, Header, Response
+from pydantic import BaseModel, constr, condecimal, conint, EmailStr
 import mysql.connector
 
 app = FastAPI()
@@ -25,6 +25,19 @@ class Book(BaseModel):
     genre: str
     price: condecimal(gt=0, decimal_places=2)  # Enforces price > 0 with 2 decimal places
     quantity: conint(ge=0)  # Ensures quantity is a non-negative integer
+
+class CustomerBase(BaseModel):
+    userId: EmailStr  # Ensures userId is a valid email
+    name: str
+    phone: str
+    address: str
+    address2: str | None = None  # Optional field
+    city: str
+    state: constr(min_length=2, max_length=2)  # Ensures state is exactly 2 letters
+    zipcode: str
+    
+class CustomerResponse(CustomerBase):
+    id: int  # Auto-generated unique customer ID
 
 # Add Book Endpoint (Fully Adhering to Requirements)
 @app.post("/books", status_code=201)
@@ -130,8 +143,8 @@ def get_book(ISBN: str):
     return book
 
 
-@app.post("/customers", status_code=201)
-def add_customer(customer: Customer, response: Response):
+@app.post("/customers", response_model=CustomerResponse, status_code=201)
+def add_customer(customer: CustomerBase, response: Response):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -169,14 +182,4 @@ def add_customer(customer: Customer, response: Response):
     # Set Location header
     response.headers["Location"] = f"/customers/{customer_id}"
 
-    return {
-        "id": customer_id,
-        "userId": customer.userId,
-        "name": customer.name,
-        "phone": customer.phone,
-        "address": customer.address,
-        "address2": customer.address2,
-        "city": customer.city,
-        "state": customer.state,
-        "zipcode": customer.zipcode
-    }
+    return CustomerResponse(id=customer_id, **customer.dict())
