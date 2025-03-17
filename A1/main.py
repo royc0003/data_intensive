@@ -128,3 +128,55 @@ def get_book(ISBN: str):
         raise HTTPException(status_code=404, detail="Book not found")
 
     return book
+
+
+@app.post("/customers", status_code=201)
+def add_customer(customer: Customer, response: Response):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Check if userId already exists
+    cursor.execute("SELECT id FROM Customers WHERE userId = %s", (customer.userId,))
+    existing_customer = cursor.fetchone()
+
+    if existing_customer:
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=422, detail={"message": "This user ID already exists in the system."})
+
+    try:
+        # Insert new customer and retrieve auto-generated ID
+        cursor.execute(
+            """INSERT INTO Customers (userId, name, phone, address, address2, city, state, zipcode)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+            (customer.userId, customer.name, customer.phone, customer.address, customer.address2,
+             customer.city, customer.state, customer.zipcode)
+        )
+        conn.commit()
+
+        # Get the auto-incremented customer ID
+        customer_id = cursor.lastrowid
+
+    except mysql.connector.Error as err:
+        conn.rollback()
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=400, detail=str(err))
+
+    cursor.close()
+    conn.close()
+
+    # Set Location header
+    response.headers["Location"] = f"/customers/{customer_id}"
+
+    return {
+        "id": customer_id,
+        "userId": customer.userId,
+        "name": customer.name,
+        "phone": customer.phone,
+        "address": customer.address,
+        "address2": customer.address2,
+        "city": customer.city,
+        "state": customer.state,
+        "zipcode": customer.zipcode
+    }
