@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Header, Response
+from fastapi import FastAPI, HTTPException, Header, Response, Query
 from pydantic import BaseModel, constr, condecimal, conint, EmailStr
 import mysql.connector
 
@@ -203,3 +203,25 @@ def get_customer(id: int):
         raise HTTPException(status_code=404, detail="Customer not found")
 
     return customer
+
+@app.get("/customers", response_model=CustomerResponse)
+def get_customer_by_userId(userId: EmailStr = Query(..., description="Customer email address (userId)")):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Fetch customer from database
+    cursor.execute("SELECT * FROM Customers WHERE userId = %s", (userId,))
+    customer = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if not customer:
+        raise HTTPException(status_code=404, detail="User ID not found")
+
+    return customer
+
+
+@app.get("/status", response_model=str)
+def health_check():
+    return "OK"
