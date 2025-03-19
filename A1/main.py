@@ -182,7 +182,7 @@ async def update_book(ISBN: str, book: Book):
     # Check if ISBNs match
     if ISBN != book.ISBN:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="ISBN in URL does not match ISBN in request body"
         )
 
@@ -275,18 +275,11 @@ async def add_customer(customer: CustomerBase, response: Response):
             # Set Location header
             response.headers["Location"] = f"/customers/{new_id}"
 
-            # Return the complete customer data
-            return {
-                "id": new_id,
-                "userId": customer.userId,
-                "name": customer.name,
-                "phone": customer.phone,
-                "address": customer.address,
-                "address2": customer.address2,
-                "city": customer.city,
-                "state": customer.state,
-                "zipcode": customer.zipcode
-            }
+            # Fetch the newly created customer to ensure we return the exact database state
+            cursor.execute("SELECT * FROM Customers WHERE id = %s", (new_id,))
+            new_customer = cursor.fetchone()
+
+            return new_customer
 
         finally:
             cursor.close()
@@ -297,7 +290,7 @@ async def add_customer(customer: CustomerBase, response: Response):
     except Exception as err:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(err)
+            detail={"message": str(err)}  # Wrap error message in correct format
         )
 
 @app.get("/customers/{id}", response_model=CustomerResponse)
