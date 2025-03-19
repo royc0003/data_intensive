@@ -118,7 +118,6 @@ async def add_book(book: Book, response: Response):
     try:
         conn = get_db_connection()
     except HTTPException as e:
-        # Re-raise database connection errors
         raise e
 
     try:
@@ -129,8 +128,6 @@ async def add_book(book: Book, response: Response):
         existing_book = cursor.fetchone()
         
         if existing_book:
-            cursor.close()
-            conn.close()
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail={"message": "This ISBN already exists in the system."}
@@ -142,9 +139,6 @@ async def add_book(book: Book, response: Response):
             (book.ISBN, book.title, book.Author, book.description, book.genre, float(book.price), book.quantity)
         )
         conn.commit()
-        
-        cursor.close()
-        conn.close()
 
         # Set Location header
         response.headers["Location"] = f"/books/{book.ISBN}"
@@ -159,23 +153,23 @@ async def add_book(book: Book, response: Response):
             "quantity": book.quantity
         }
 
+    except HTTPException as e:
+        raise e
     except mariadb.Error as err:
-        if conn:
-            conn.rollback()
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": str(err)}
+        )
     except Exception as err:
-        if conn:
-            conn.rollback()
-        if cursor:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"message": str(err)}
+        )
+    finally:
+        if 'cursor' in locals():
             cursor.close()
-        if conn:
+        if 'conn' in locals():
             conn.close()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err))
-
 
 @app.put("/books/{ISBN}", status_code=status.HTTP_200_OK)
 async def update_book(ISBN: str, book: Book):
