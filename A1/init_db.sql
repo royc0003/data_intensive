@@ -1,6 +1,10 @@
 CREATE DATABASE IF NOT EXISTS Bookstore;
 USE Bookstore;
 
+-- Drop existing tables if they exist
+DROP TABLE IF EXISTS Books;
+DROP TABLE IF EXISTS Customers;
+
 CREATE TABLE IF NOT EXISTS Books (
     ISBN VARCHAR(20) PRIMARY KEY,
     title VARCHAR(255) NOT NULL,

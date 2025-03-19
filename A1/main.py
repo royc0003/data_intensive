@@ -323,12 +323,20 @@ def get_customer(id: int):
         )
 
 @app.get("/customers", response_model=CustomerResponse)
-def get_customer_by_userId(userId: str = Query(..., description="Customer email address (userId)")):
-    # First validate email format
-    if '@' not in userId or '.' not in userId or ' ' in userId:
+def get_customer_by_userId(
+    userId: str = Query(None, description="Customer email address (userId)"),
+    id: int = Query(None, description="Customer ID")
+):
+    if userId is None and id is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid email format"
+            detail={"message": "Either userId or id parameter is required"}
+        )
+
+    if userId and id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": "Please provide either userId or id, not both"}
         )
 
     try:
@@ -336,14 +344,30 @@ def get_customer_by_userId(userId: str = Query(..., description="Customer email 
         cursor = conn.cursor(dictionary=True)
 
         try:
-            # Fetch customer from database
-            cursor.execute("SELECT * FROM Customers WHERE userId = %s", (userId,))
+            if userId:
+                # Validate email format
+                if '@' not in userId or '.' not in userId or ' ' in userId:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail={"message": "Invalid email format"}
+                    )
+                
+                cursor.execute("SELECT * FROM Customers WHERE userId = %s", (userId,))
+            else:
+                if id <= 0:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail={"message": "Invalid customer ID"}
+                    )
+                
+                cursor.execute("SELECT * FROM Customers WHERE id = %s", (id,))
+
             customer = cursor.fetchone()
 
             if not customer:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="User ID not found"
+                    detail={"message": "Customer not found"}
                 )
 
             return customer
@@ -357,7 +381,7 @@ def get_customer_by_userId(userId: str = Query(..., description="Customer email 
     except Exception as err:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(err)
+            detail={"message": str(err)}
         )
 
 @app.get("/status", response_model=str)
