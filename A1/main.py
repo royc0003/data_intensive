@@ -29,7 +29,7 @@ db_config = {
     "user": os.getenv("DB_USER", "Bookstore"),
     "password": os.getenv("DB_PASSWORD", "password"),
     "database": os.getenv("DB_NAME", "Bookstore"),
-    "connect_timeout": 1100
+    "connect_timeout": 100000
 }
 
 def get_db_connection():
@@ -182,7 +182,7 @@ async def update_book(ISBN: str, book: Book):
     # Check if ISBNs match
     if ISBN != book.ISBN:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="ISBN in URL does not match ISBN in request body"
         )
 
