@@ -23,5 +23,5 @@ if ! wait_for_mysql; then
     exit 1
 fi
 
-# Start the application
-exec uvicorn main:app --host 0.0.0.0 --port 8000 
+# Start the application on port 80 with proper host binding
+exec uvicorn main:app --host 0.0.0.0 --port 80 --workers 4

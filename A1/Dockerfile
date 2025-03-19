@@ -14,7 +14,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Install system dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        default-libmysqlclient-dev \
+        libmariadb3 \
+        libmariadb-dev \
         build-essential \
         netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
@@ -30,8 +31,8 @@ COPY . .
 COPY docker-entrypoint.sh .
 RUN chmod +x docker-entrypoint.sh
 
-# Expose port
-EXPOSE 8000
+# Expose port 80
+EXPOSE 80
 
 # Create non-root user
 RUN adduser --disabled-password --gecos '' appuser

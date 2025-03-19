@@ -1,31 +1,34 @@
 from fastapi import FastAPI, HTTPException, Header, Response, Query
 from pydantic import BaseModel, constr, condecimal, conint, EmailStr
 from typing import Optional
-import mysql.connector
-from mysql.connector import Error
+import mariadb
 import os
 import time
 
 app = FastAPI()
 
-# MySQL Database Connection using environment variables
+# MariaDB Connection Configuration
 db_config = {
-    "host": os.getenv("DB_HOST", "bookstore-db-dev-instance2.cnomgymiqut0.us-east-1.rds.amazonaws.com:3306"),
-    "user": os.getenv("DB_USER", "Bookstore"),
+    "host": os.getenv("DB_HOST", "bookstore-db-dev.cluster-cnomgymiqut0.us-east-1.rds.amazonaws.com"),
+    "port": 3306,
+    "user": os.getenv("DB_USER", "root"),
     "password": os.getenv("DB_PASSWORD", "password"),
-    "database": os.getenv("DB_NAME", "Bookstore")
+    "database": os.getenv("DB_NAME", "Bookstore"),
+    "connect_timeout": 10
 }
 
 def get_db_connection():
     retries = 5
     while retries > 0:
         try:
-            return mysql.connector.connect(**db_config)
-        except Error as e:
+            connection = mariadb.connect(**db_config)
+            connection.autocommit = False
+            return connection
+        except mariadb.Error as e:
             retries -= 1
             if retries == 0:
-                raise e
-            time.sleep(1)  # Wait 1 second before retrying
+                raise HTTPException(status_code=500, detail=f"Database connection failed: {str(e)}")
+            time.sleep(1)
 
 # Data Model for Validation
 class Book(BaseModel):
@@ -72,7 +75,7 @@ def add_book(book: Book):
             (book.ISBN, book.title, book.Author, book.description, book.genre, book.price, book.quantity)
         )
         conn.commit()
-    except mysql.connector.Error as err:
+    except mariadb.Error as err:
         conn.rollback()
         cursor.close()
         conn.close()
@@ -116,7 +119,7 @@ def update_book(ISBN: str, book: Book):
             (book.title, book.Author, book.description, book.genre, book.price, book.quantity, ISBN)
         )
         conn.commit()
-    except mysql.connector.Error as err:
+    except mariadb.Error as err:
         conn.rollback()
         cursor.close()
         conn.close()
@@ -181,7 +184,7 @@ def add_customer(customer: CustomerBase, response: Response):
         # Get the auto-incremented customer ID
         customer_id = cursor.lastrowid
 
-    except mysql.connector.Error as err:
+    except mariadb.Error as err:
         conn.rollback()
         cursor.close()
         conn.close()

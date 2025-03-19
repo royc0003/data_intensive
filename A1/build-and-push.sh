@@ -5,9 +5,16 @@ set -a
 source .env
 set +a
 
-# Build and push using docker-compose
+# Check if logged in to Docker Hub
+echo "Checking Docker Hub login status..."
+if ! docker info | grep -q "Username"; then
+    echo "Not logged in to Docker Hub. Please login first:"
+    docker login
+fi
+
+# Build and tag the image
 echo "Building image..."
-docker-compose build
+docker build -t ${DOCKER_USERNAME}/bookstore-api:latest .
 
 echo "Pushing image to Docker Hub..."
 docker push ${DOCKER_USERNAME}/bookstore-api:latest
