@@ -323,20 +323,12 @@ def get_customer(id: int):
         )
 
 @app.get("/customers", response_model=CustomerResponse)
-def get_customer_by_userId(
-    userId: str = Query(None, description="Customer email address (userId)"),
-    id: int = Query(None, description="Customer ID")
-):
-    if userId is None and id is None:
+def get_customer_by_userId(userId: str = Query(..., description="Customer email address (userId)")):
+    # Validate email format
+    if '@' not in userId or '.' not in userId or ' ' in userId:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"message": "Either userId or id parameter is required"}
-        )
-
-    if userId and id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"message": "Please provide either userId or id, not both"}
+            detail={"message": "Invalid email format"}
         )
 
     try:
@@ -344,24 +336,7 @@ def get_customer_by_userId(
         cursor = conn.cursor(dictionary=True)
 
         try:
-            if userId:
-                # Validate email format
-                if '@' not in userId or '.' not in userId or ' ' in userId:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail={"message": "Invalid email format"}
-                    )
-                
-                cursor.execute("SELECT * FROM Customers WHERE userId = %s", (userId,))
-            else:
-                if id <= 0:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail={"message": "Invalid customer ID"}
-                    )
-                
-                cursor.execute("SELECT * FROM Customers WHERE id = %s", (id,))
-
+            cursor.execute("SELECT * FROM Customers WHERE userId = %s", (userId,))
             customer = cursor.fetchone()
 
             if not customer:
