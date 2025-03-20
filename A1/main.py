@@ -15,12 +15,20 @@ async def validation_exception_handler(request, exc):
     if any(error["type"] == "value_error.missing" for error in exc.errors()):
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"detail": "Missing required fields"},
+            content={"message": "Missing required fields"},
         )
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
-        content={"detail": str(exc)},
+        content={"message": str(exc)},
     )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"message": exc.detail}
+    )
+
 
 # MariaDB Connection Configuration
 db_config = {
@@ -117,10 +125,6 @@ class CustomerResponse(CustomerBase):
 async def add_book(book: Book, response: Response):
     try:
         conn = get_db_connection()
-    except HTTPException as e:
-        raise e
-
-    try:
         cursor = conn.cursor(dictionary=True)
 
         # Check if ISBN already exists
@@ -130,7 +134,7 @@ async def add_book(book: Book, response: Response):
         if existing_book:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail={"message": "This ISBN already exists in the system."}
+                detail="This ISBN already exists in the system."
             )
 
         # Insert the new book
@@ -155,15 +159,10 @@ async def add_book(book: Book, response: Response):
 
     except HTTPException as e:
         raise e
-    except mariadb.Error as err:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"message": str(err)}
-        )
     except Exception as err:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"message": str(err)}
+            detail=str(err)
         )
     finally:
         if 'cursor' in locals():
@@ -244,48 +243,55 @@ async def add_customer(customer: CustomerBase, response: Response):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        try:
-            # Check if userId already exists
-            cursor.execute("SELECT id FROM Customers WHERE userId = %s", (customer.userId,))
-            existing_customer = cursor.fetchone()
+        # Check if userId already exists
+        cursor.execute("SELECT id FROM Customers WHERE userId = %s", (customer.userId,))
+        existing_customer = cursor.fetchone()
 
-            if existing_customer:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail={"message": "This user ID already exists in the system."}
-                )
-
-            # Insert new customer
-            cursor.execute(
-                """INSERT INTO Customers (userId, name, phone, address, address2, city, state, zipcode)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-                (customer.userId, customer.name, customer.phone, customer.address, 
-                 customer.address2, customer.city, customer.state, customer.zipcode)
+        if existing_customer:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="This user ID already exists in the system."
             )
-            conn.commit()
 
-            new_id = cursor.lastrowid
+        # Insert new customer
+        cursor.execute(
+            """INSERT INTO Customers (userId, name, phone, address, address2, city, state, zipcode)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+            (customer.userId, customer.name, customer.phone, customer.address, 
+             customer.address2, customer.city, customer.state, customer.zipcode)
+        )
+        conn.commit()
 
-            # Set Location header
-            response.headers["Location"] = f"/customers/{new_id}"
+        new_id = cursor.lastrowid
 
-            # Fetch the newly created customer to ensure we return the exact database state
-            cursor.execute("SELECT * FROM Customers WHERE id = %s", (new_id,))
-            new_customer = cursor.fetchone()
+        # Set Location header
+        response.headers["Location"] = f"/customers/{new_id}"
 
-            return new_customer
-
-        finally:
-            cursor.close()
-            conn.close()
+        # Return the customer data directly
+        return {
+            "id": new_id,
+            "userId": customer.userId,
+            "name": customer.name,
+            "phone": customer.phone,
+            "address": customer.address,
+            "address2": customer.address2,
+            "city": customer.city,
+            "state": customer.state,
+            "zipcode": customer.zipcode
+        }
 
     except HTTPException as e:
         raise e
     except Exception as err:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"message": str(err)}  # Wrap error message in correct format
+            detail=str(err)
         )
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 @app.get("/customers/{id}", response_model=CustomerResponse)
 def get_customer(id: int):
@@ -307,7 +313,7 @@ def get_customer(id: int):
         conn.close()
 
         if not customer:
-            raise HTTPException(status_code=404, detail="Customer not found")
+            raise HTTPException(status_code=404, detail={"message": "Customer not found"})
 
         return customer
     except ValueError:
@@ -322,7 +328,7 @@ def get_customer_by_userId(userId: str = Query(..., description="Customer email 
     if '@' not in userId or '.' not in userId or ' ' in userId:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"message": "Invalid email format"}
+            detail="Invalid email format"
         )
 
     try:
@@ -336,7 +342,7 @@ def get_customer_by_userId(userId: str = Query(..., description="Customer email 
             if not customer:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail={"message": "Customer not found"}
+                    detail="Customer not found"
                 )
 
             return customer
@@ -350,7 +356,7 @@ def get_customer_by_userId(userId: str = Query(..., description="Customer email 
     except Exception as err:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"message": str(err)}
+            detail=str(err)
         )
 
 @app.get("/status", response_model=str)
