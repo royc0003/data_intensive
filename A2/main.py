@@ -10,58 +10,13 @@ from decimal import Decimal
 import jwt
 from datetime import datetime
 import json
+from jwt_validator import validate_jwt_token
 
 app = FastAPI()
 
 # JWT validation constants
 VALID_SUBJECTS = {"starlord", "gamora", "drax", "rocket", "groot"}
 VALID_ISSUER = "cmu.edu"
-
-async def validate_jwt_token(authorization: str = Header(...)):
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization header format"
-        )
-    
-    token = authorization.split(" ")[1]
-    try:
-        # Decode the JWT token (without verification for this assignment)
-        payload = jwt.decode(token, options={"verify_signature": False})
-        
-        # Validate required claims
-        if "sub" not in payload or payload["sub"] not in VALID_SUBJECTS:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid subject in token"
-            )
-        
-        if "exp" not in payload:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing expiration claim"
-            )
-        
-        # Check if token is expired
-        exp_timestamp = payload["exp"]
-        if datetime.fromtimestamp(exp_timestamp) < datetime.now():
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has expired"
-            )
-        
-        if "iss" not in payload or payload["iss"] != VALID_ISSUER:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid issuer"
-            )
-        
-        return payload
-    except jwt.InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
-        )
 
 async def validate_client_type(x_client_type: str = Header(...)):
     valid_types = {"Web", "iOS", "Android"}
@@ -289,7 +244,8 @@ async def get_book(
 ):
     # Validate headers
     await validate_client_type(x_client_type)
-    await validate_jwt_token(authorization)
+    # Validate JWT token
+    validate_jwt_token(authorization)
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -376,7 +332,8 @@ async def get_customer(
 ):
     # Validate headers
     await validate_client_type(x_client_type)
-    await validate_jwt_token(authorization)
+    # Validate JWT token
+    validate_jwt_token(authorization)
 
     try:
         if id <= 0:
@@ -422,7 +379,8 @@ async def get_customer_by_userId(
 ):
     # Validate headers
     await validate_client_type(x_client_type)
-    await validate_jwt_token(authorization)
+    # Validate JWT token
+    validate_jwt_token(authorization)
 
     # Validate email format
     if '@' not in userId or '.' not in userId or ' ' in userId:
@@ -475,5 +433,6 @@ async def health_check(
 ):
     # Validate headers
     await validate_client_type(x_client_type)
-    await validate_jwt_token(authorization)
+    # Validate JWT token
+    validate_jwt_token(authorization)
     return "OK"
