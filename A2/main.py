@@ -94,7 +94,7 @@ async def http_exception_handler(request, exc):
 
 # MariaDB Connection Configuration
 db_config = {
-    "host": os.getenv("DB_HOST", "bookstore-db-dev.cluster-cnomgymiqut0.us-east-1.rds.amazonaws.com"),
+    "host": os.getenv("DB_HOST", "bookstore-db-dev.cluster-csdxv2900nel.us-east-1.rds.amazonaws.com"),
     "port": int(os.getenv("DB_PORT", "3306")),
     "user": os.getenv("DB_USER", "Bookstore"),
     "password": os.getenv("DB_PASSWORD", "password"),
