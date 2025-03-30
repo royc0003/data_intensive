@@ -29,8 +29,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Copy and make the entrypoint script executable
-COPY docker-entrypoint.sh .
-RUN chmod +x docker-entrypoint.sh
+COPY docker-bff-entrypoint.sh .
+RUN chmod +x docker-bff-entrypoint.sh
 
 # Expose port 80
 EXPOSE 80
@@ -40,4 +40,4 @@ RUN adduser --disabled-password --gecos '' appuser
 USER appuser
 
 # Use the entrypoint script
-ENTRYPOINT ["./docker-entrypoint.sh"] 
+ENTRYPOINT ["./docker-bff-entrypoint.sh"] 

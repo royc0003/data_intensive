@@ -9,7 +9,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DB_HOST=host.docker.internal \
     DB_USER=root \
     DB_PASSWORD=password \
-    DB_NAME=Bookstore
+    DB_NAME=Bookstore \
+    BOOKS_SERVICE_URL=http://internal-bookstore-dev-InternalALB-2009767369.us-east-1.elb.amazonaws.com:3000 \
+    CUSTOMERS_SERVICE_URL=http://internal-bookstore-dev-InternalALB-2009767369.us-east-1.elb.amazonaws.com:3000
 
 # Install system dependencies
 RUN apt-get update \

@@ -12,7 +12,13 @@ def validate_jwt_token(authorization: str) -> dict:
     Returns the decoded payload if valid.
     Raises HTTPException with 401 status if invalid.
     """
-    if not authorization or not authorization.startswith("Bearer "):
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Authorization header"
+        )
+    
+    if not authorization.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authorization header format"
@@ -24,7 +30,13 @@ def validate_jwt_token(authorization: str) -> dict:
         payload = jwt.decode(token, options={"verify_signature": False})
         
         # Validate required claims
-        if "sub" not in payload or payload["sub"] not in VALID_SUBJECTS:
+        if "sub" not in payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing subject claim"
+            )
+        
+        if payload["sub"] not in VALID_SUBJECTS:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid subject in token"
@@ -44,7 +56,13 @@ def validate_jwt_token(authorization: str) -> dict:
                 detail="Token has expired"
             )
         
-        if "iss" not in payload or payload["iss"] != VALID_ISSUER:
+        if "iss" not in payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing issuer claim"
+            )
+        
+        if payload["iss"] != VALID_ISSUER:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid issuer"

@@ -15,14 +15,14 @@ fi
 
 # Build and tag the image
 echo "Building image..."
-docker build -t ${DOCKER_USERNAME}/bookstore-api:latest .
+# docker build -t ${DOCKER_USERNAME}/bookstore-api:latest .
 docker build -f Dockerfile.web-bff -t ${DOCKER_USERNAME}/bookstore-api:1 .
 docker build -f Dockerfile.mobile-bff -t ${DOCKER_USERNAME}/bookstore-api:2 .
 docker build -f Dockerfile.customer-service -t ${DOCKER_USERNAME}/bookstore-api:3 .
 docker build -f Dockerfile.book-service -t ${DOCKER_USERNAME}/bookstore-api:4 .
 
 echo "Pushing image to Docker Hub..."
-docker push ${DOCKER_USERNAME}/bookstore-api:latest
+# docker push ${DOCKER_USERNAME}/bookstore-api:latest
 docker push ${DOCKER_USERNAME}/bookstore-api:1
 docker push ${DOCKER_USERNAME}/bookstore-api:2
 docker push ${DOCKER_USERNAME}/bookstore-api:3

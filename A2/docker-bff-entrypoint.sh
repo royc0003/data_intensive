@@ -17,23 +17,23 @@ wait_for_mysql() {
     return 1
 }
 
-# Function to wait for a service
-wait_for_service() {
-    local service_url=$1
+# Function to wait for a backend service
+wait_for_backend() {
+    local service_url=localhost:3000
     local service_name=$2
     echo "Waiting for $service_name to be ready..."
-    local retries=30
+    local retries=5
     while [ $retries -gt 0 ]; do
-        if curl -f "$service_url/status" >/dev/null 2>&1; then
+        if curl -s -f "${service_url}/status" > /dev/null 2>&1; then
             echo "$service_name is ready!"
             return 0
         fi
         echo "$service_name not ready yet, retrying... ($retries attempts left)"
         retries=$((retries-1))
-        sleep 1
+        sleep 2
     done
-    echo "Could not connect to $service_name after 30 seconds"
-    return 1
+    echo "Could not connect to $service_name after multiple attempts. Proceeding anyway..."
+    return 0  # Continue anyway to avoid blocking startup
 }
 
 # Wait for MySQL to be ready
@@ -42,17 +42,14 @@ if ! wait_for_mysql; then
     exit 1
 fi
 
-# Determine which port to use based on SERVICE_TYPE environment variable
-PORT=${SERVICE_TYPE:-80}
+# Wait for backend services (but don't block completely if they're not ready)
+wait_for_backend "$BOOKS_SERVICE_URL" "Books Service"
+wait_for_backend "$CUSTOMERS_SERVICE_URL" "Customers Service"
 
-# Set appropriate number of workers
-if [ "${PORT}" = "80" ]; then
-    # BFF service handles more concurrent requests
-    WORKERS=4
-else
-    # Backend services are more DB intensive
-    WORKERS=2
-fi
+echo "Starting BFF service on port 80..."
 
-echo "Starting service on port $PORT with $WORKERS workers"
-exec uvicorn main:app --host 0.0.0.0 --port $PORT --workers $WORKERS --timeout-keep-alive 75
+# Use UVICORN_LOG_LEVEL to control logging verbosity
+export UVICORN_LOG_LEVEL=${UVICORN_LOG_LEVEL:-info}
+
+# Set higher timeouts for the BFF service
+exec uvicorn services.bff.main:app --host 0.0.0.0 --port 80 --workers 4 --timeout-keep-alive 75 --log-level $UVICORN_LOG_LEVEL
