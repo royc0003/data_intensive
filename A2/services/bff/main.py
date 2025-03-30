@@ -150,7 +150,22 @@ async def forward_request(method: str, url: str, headers: dict, **kwargs):
                 # Log response
                 logger.info(f"Received {response.status_code} response from {url}")
                 
-                # Check for error status codes
+                # Handle 4xx error status codes - pass them through directly
+                if 400 <= response.status_code < 500:
+                    try:
+                        error_detail = response.json().get('message', str(response.content))
+                    except Exception:
+                        error_detail = str(response.content)
+                    
+                    logger.info(f"Passing through error response: {response.status_code} - {error_detail}")
+                    
+                    # Return the original status code and error message
+                    raise HTTPException(
+                        status_code=response.status_code,
+                        detail=error_detail
+                    )
+                
+                # Check for 5xx error status codes
                 if response.status_code >= 500:
                     logger.warning(f"Error response from backend: {response.status_code}")
                     try:
@@ -163,7 +178,7 @@ async def forward_request(method: str, url: str, headers: dict, **kwargs):
                         detail=error_detail
                     )
                 
-                # Parse response
+                # Parse response for successful requests
                 try:
                     json_response = response.json()
                     return response.status_code, json_response
@@ -183,6 +198,9 @@ async def forward_request(method: str, url: str, headers: dict, **kwargs):
         except httpx.HTTPError as e:
             logger.warning(f"HTTP error: {str(e)}")
             last_error = e
+        except HTTPException as e:
+            # If it's a HTTPException (like a 404), we want to raise it directly without retrying
+            raise e
         except Exception as e:
             logger.error(f"Unexpected error: {str(e)}")
             last_error = e
