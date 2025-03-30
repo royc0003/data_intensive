@@ -263,6 +263,14 @@ async def update_book(
     await validate_client_type(x_client_type)
     await validate_auth(authorization)
 
+    # Check if ISBNs match between URL and request body
+    if ISBN != book.ISBN:
+        logger.warning(f"ISBN mismatch: URL has {ISBN}, but request body has {book.ISBN}")
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"message": "ISBN in URL does not match ISBN in request body"}
+        )
+
     # Convert Decimal values to float for serialization
     book_dict = {
         "ISBN": book.ISBN,

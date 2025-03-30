@@ -22,7 +22,7 @@ wait_for_backend() {
     local service_url=localhost:3000
     local service_name=$2
     echo "Waiting for $service_name to be ready..."
-    local retries=5
+    local retries=1
     while [ $retries -gt 0 ]; do
         if curl -s -f "${service_url}/status" > /dev/null 2>&1; then
             echo "$service_name is ready!"
