@@ -61,4 +61,12 @@ class CustomerBase(BaseModel):
         }
 
 class CustomerResponse(CustomerBase):
-    id: int  # Auto-generated unique customer ID 
+    id: int  # Auto-generated unique customer ID
+
+# Model for mobile client responses without address fields
+class MobileCustomerResponse(BaseModel):
+    id: int  
+    userId: EmailStr
+    name: str
+    phone: str 
+    

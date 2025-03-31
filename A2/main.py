@@ -421,14 +421,6 @@ async def get_customer(
         if not customer:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
 
-        # Handle mobile app specific requirement for BFF service
-        if IS_BFF_SERVICE and x_client_type in ["iOS", "Android"]:
-            # Remove address-related fields for mobile clients
-            del customer["address"]
-            del customer["address2"]
-            del customer["city"]
-            del customer["state"]
-            del customer["zipcode"]
 
         return customer
 
@@ -474,15 +466,6 @@ async def get_customer_by_userId(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Customer not found"
             )
-
-        # Handle mobile app specific requirement for BFF service
-        if IS_BFF_SERVICE and x_client_type in ["iOS", "Android"]:
-            # Remove address-related fields for mobile clients
-            del customer["address"]
-            del customer["address2"]
-            del customer["city"]
-            del customer["state"]
-            del customer["zipcode"]
 
         return customer
 

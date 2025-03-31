@@ -1,10 +1,10 @@
 from fastapi import FastAPI, HTTPException, Header, Response, Query, status, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, PlainTextResponse
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any
 import httpx
 import asyncio
-from ..shared.models import Book, CustomerBase, CustomerResponse
+from ..shared.models import Book, CustomerBase, CustomerResponse, MobileCustomerResponse
 from ..shared.auth import validate_client_type, validate_auth
 import os
 import logging
@@ -322,9 +322,10 @@ async def get_book(
     x_client_type: str = Header(...),
     authorization: str = Header(...)
 ):
-    logger.info("ISBN: ", ISBN)
-    logger.info("x_client_type: ", x_client_type)
-    logger.info("authorization: ", authorization)
+    logger.info(f"ISBN: {ISBN}")
+    logger.info(f"x_client_type: {x_client_type}")
+    logger.info(f"authorization: {authorization}")
+    
     # Validate headers
     await validate_client_type(x_client_type)
     await validate_auth(authorization)
@@ -344,7 +345,7 @@ async def get_book(
 
     return data
 
-@app.post("/customers", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/customers", status_code=status.HTTP_201_CREATED)
 async def add_customer(
     customer: CustomerBase,
     response: Response,
@@ -354,6 +355,10 @@ async def add_customer(
     # Validate headers
     await validate_client_type(x_client_type)
     await validate_auth(authorization)
+    
+    # Log the request values for debugging
+    logger.info(f"Adding customer: {customer.dict()}")
+    logger.info(f"Client type: {x_client_type}")
 
     # Forward request to customers service
     status_code, data = await forward_request(
@@ -367,18 +372,24 @@ async def add_customer(
         # Set Location header
         response.headers["Location"] = f"/customers/{data['id']}"
 
-        # Format response for mobile clients (case-insensitive check)
-        if x_client_type.lower() in ["ios", "android"]:
-            # Remove address-related fields for mobile clients
-            del data["address"]
-            del data["address2"]
-            del data["city"]
-            del data["state"]
-            del data["zipcode"]
-
+        # Format response for mobile clients (ensure case-insensitive comparison)
+        # if x_client_type.lower() in ["ios", "android"]:
+        #     logger.info(f"Formatting response for mobile client: {x_client_type}")
+        #     # Create a new dictionary with only the fields needed for mobile
+        #     mobile_data = {
+        #         "id": data["id"],
+        #         "userId": data["userId"],
+        #         "name": data["name"],
+        #         "phone": data["phone"]
+        #     }
+        #     # Log the mobile data being returned
+        #     logger.info(f"Returning mobile data: {mobile_data}")
+        #     # Validate against the MobileCustomerResponse model
+        #     return mobile_data
+        
     return data
 
-@app.get("/customers/{id}", response_model=CustomerResponse)
+@app.get("/customers/{id}", response_model=None)
 async def get_customer(
     id: int,
     x_client_type: str = Header(...),
@@ -387,6 +398,10 @@ async def get_customer(
     # Validate headers
     await validate_client_type(x_client_type)
     await validate_auth(authorization)
+    
+    # Log the request values for debugging
+    logger.info(f"Getting customer by id: {id}")
+    logger.info(f"Client type: {x_client_type}")
 
     # Forward request to customers service
     status_code, data = await forward_request(
@@ -396,18 +411,23 @@ async def get_customer(
     )
 
     if status_code == 200:
-        # Format response for mobile clients (case-insensitive check)
+        # Format response for mobile clients (ensure case-insensitive comparison)
         if x_client_type.lower() in ["ios", "android"]:
-            # Remove address-related fields for mobile clients
-            del data["address"]
-            del data["address2"]
-            del data["city"]
-            del data["state"]
-            del data["zipcode"]
-
+            logger.info(f"Formatting response for mobile client: {x_client_type}")
+            # Create a new dictionary with only the fields needed for mobile
+            mobile_data = {
+                "id": data["id"],
+                "userId": data["userId"],
+                "name": data["name"],
+                "phone": data["phone"]
+            }
+            # Log the mobile data being returned
+            logger.info(f"Returning mobile data: {mobile_data}")
+            return mobile_data
+        
     return data
 
-@app.get("/customers", response_model=CustomerResponse)
+@app.get("/customers", response_model=None)
 async def get_customer_by_userId(
     userId: str = Query(..., description="Customer email address (userId)"),
     x_client_type: str = Header(...),
@@ -416,6 +436,10 @@ async def get_customer_by_userId(
     # Validate headers
     await validate_client_type(x_client_type)
     await validate_auth(authorization)
+    
+    # Log the request values for debugging
+    logger.info(f"Getting customer by userId: {userId}")
+    logger.info(f"Client type: {x_client_type}")
 
     # Forward request to customers service
     status_code, data = await forward_request(
@@ -426,13 +450,18 @@ async def get_customer_by_userId(
     )
 
     if status_code == 200:
-        # Format response for mobile clients (case-insensitive check)
+        # Format response for mobile clients (ensure case-insensitive comparison)
         if x_client_type.lower() in ["ios", "android"]:
-            # Remove address-related fields for mobile clients
-            del data["address"]
-            del data["address2"]
-            del data["city"]
-            del data["state"]
-            del data["zipcode"]
-
+            logger.info(f"Formatting response for mobile client: {x_client_type}")
+            # Create a new dictionary with only the fields needed for mobile
+            mobile_data = {
+                "id": data["id"],
+                "userId": data["userId"],
+                "name": data["name"],
+                "phone": data["phone"]
+            }
+            # Log the mobile data being returned
+            logger.info(f"Returning mobile data: {mobile_data}")
+            return mobile_data
+        
     return data
