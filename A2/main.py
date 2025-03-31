@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Header, Response, Query, status
+from fastapi import FastAPI, HTTPException, Header, Response, Query, status, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, constr, condecimal, conint, EmailStr, validator, ValidationError
@@ -7,16 +7,62 @@ import mariadb
 import os
 import time
 from decimal import Decimal
+import jwt
+from datetime import datetime
+import json
+from jwt_validator import validate_jwt_token
 
 app = FastAPI()
 
+# JWT validation constants
+VALID_SUBJECTS = {"starlord", "gamora", "drax", "rocket", "groot"}
+VALID_ISSUER = "cmu.edu"
+
+# Determine if this is a BFF service based on port
+# IS_BFF_SERVICE = os.getenv("SERVICE_TYPE", "80") == "80"
+IS_BFF_SERVICE = False
+async def validate_client_type(x_client_type: Optional[str] = Header(None)):
+    if IS_BFF_SERVICE:
+        if not x_client_type:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Missing X-Client-Type header"
+            )
+        valid_types = {"Web", "iOS", "Android"}
+        if x_client_type not in valid_types:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid X-Client-Type header"
+            )
+    return x_client_type
+
+async def validate_auth(authorization: Optional[str] = Header(None)):
+    if IS_BFF_SERVICE:
+        if not authorization:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing Authorization header"
+            )
+        validate_jwt_token(authorization)
+    return authorization
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
-    if any(error["type"] == "value_error.missing" for error in exc.errors()):
+    # Check if the error is due to missing Authorization header
+    if any(error["loc"][0] == "header" and error["loc"][1] == "authorization" for error in exc.errors()):
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={"message": "Missing Authorization header"},
+        )
+    
+    # Check if the error is due to missing X-Client-Type header
+    if any(error["loc"][0] == "header" and error["loc"][1] == "x_client_type" for error in exc.errors()):
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"message": "Missing required fields"},
+            content={"message": "Missing X-Client-Type header"},
         )
+    
+    # For other validation errors
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"message": str(exc)},
@@ -32,12 +78,14 @@ async def http_exception_handler(request, exc):
 
 # MariaDB Connection Configuration
 db_config = {
-    "host": os.getenv("DB_HOST", "bookstore-db-dev.cluster-cnomgymiqut0.us-east-1.rds.amazonaws.com"),
+    "host": os.getenv("DB_HOST", "bookstore-db-dev.cluster-csdxv2900nel.us-east-1.rds.amazonaws.com"),
     "port": int(os.getenv("DB_PORT", "3306")),
     "user": os.getenv("DB_USER", "Bookstore"),
     "password": os.getenv("DB_PASSWORD", "password"),
     "database": os.getenv("DB_NAME", "Bookstore"),
-    "connect_timeout": 100000
+    "connect_timeout": 300000,  # 5 minutes connection timeout
+    "read_timeout": 300000,     # 5 minutes read timeout
+    "write_timeout": 300000     # 5 minutes write timeout
 }
 
 def get_db_connection():
@@ -55,7 +103,7 @@ def get_db_connection():
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=f"Database connection failed: {str(e)}"
                 )
-            time.sleep(1)
+            time.sleep(2)  # Increased sleep time between retries
 
 # Data Model for Validation
 class Book(BaseModel):
@@ -122,7 +170,16 @@ class CustomerResponse(CustomerBase):
 
 # Add Book Endpoint (Fully Adhering to Requirements)
 @app.post("/books", status_code=status.HTTP_201_CREATED)
-async def add_book(book: Book, response: Response):
+async def add_book(
+    book: Book,
+    response: Response,
+    x_client_type: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
+):
+    # Validate headers only for BFF service
+    # await validate_client_type(x_client_type)
+    # await validate_auth(authorization)
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -171,7 +228,16 @@ async def add_book(book: Book, response: Response):
             conn.close()
 
 @app.put("/books/{ISBN}", status_code=status.HTTP_200_OK)
-async def update_book(ISBN: str, book: Book):
+async def update_book(
+    ISBN: str,
+    book: Book,
+    x_client_type: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
+):
+    # Validate headers only for BFF service
+    # await validate_client_type(x_client_type)
+    # await validate_auth(authorization)
+
     # Check if ISBNs match
     if ISBN != book.ISBN:
         raise HTTPException(
@@ -179,19 +245,17 @@ async def update_book(ISBN: str, book: Book):
             detail="ISBN in URL does not match ISBN in request body"
         )
 
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    # Check if book exists
-    cursor.execute("SELECT * FROM Books WHERE ISBN = %s", (ISBN,))
-    existing_book = cursor.fetchone()
-
-    if not existing_book:
-        cursor.close()
-        conn.close()
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
-
     try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Check if book exists
+        cursor.execute("SELECT * FROM Books WHERE ISBN = %s", (ISBN,))
+        existing_book = cursor.fetchone()
+
+        if not existing_book:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+
         cursor.execute(
             """UPDATE Books 
                SET title = %s, Author = %s, description = %s, genre = %s, price = %s, quantity = %s
@@ -199,46 +263,83 @@ async def update_book(ISBN: str, book: Book):
             (book.title, book.Author, book.description, book.genre, float(book.price), book.quantity, ISBN)
         )
         conn.commit()
-    except mariadb.Error as err:
-        conn.rollback()
-        cursor.close()
-        conn.close()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
-    cursor.close()
-    conn.close()
+        return {
+            "ISBN": ISBN,
+            "title": book.title,
+            "Author": book.Author,
+            "description": book.description,
+            "genre": book.genre,
+            "price": float(book.price),
+            "quantity": book.quantity
+        }
 
-    return {
-        "ISBN": ISBN,
-        "title": book.title,
-        "Author": book.Author,
-        "description": book.description,
-        "genre": book.genre,
-        "price": float(book.price),
-        "quantity": book.quantity
-    }
+    except HTTPException as e:
+        raise e
+    except Exception as err:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(err)
+        )
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 @app.get("/books/{ISBN}")
 @app.get("/books/isbn/{ISBN}")
-def get_book(ISBN: str):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+async def get_book(
+    ISBN: str,
+    x_client_type: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
+):
+    # Validate headers only for BFF service
+    # await validate_client_type(x_client_type)
+    # await validate_auth(authorization)
 
-    # Fetch book from database
-    cursor.execute("SELECT * FROM Books WHERE ISBN = %s", (ISBN,))
-    book = cursor.fetchone()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    cursor.close()
-    conn.close()
+        # Fetch book from database
+        cursor.execute("SELECT * FROM Books WHERE ISBN = %s", (ISBN,))
+        book = cursor.fetchone()
 
-    if not book:
-        raise HTTPException(status_code=404, detail="Book not found")
+        if not book:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 
-    return book
+        # Handle mobile app specific requirement for BFF service
+        # if IS_BFF_SERVICE and x_client_type in ["iOS", "Android"]:
+        #     if book["genre"] == "non-fiction":
+        #         book["genre"] = "3"
 
+        return book
+
+    except HTTPException as e:
+        raise e
+    except Exception as err:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(err)
+        )
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 @app.post("/customers", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)
-async def add_customer(customer: CustomerBase, response: Response):
+async def add_customer(
+    customer: CustomerBase,
+    response: Response,
+    x_client_type: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
+):
+    # Validate headers only for BFF service
+    # await validate_client_type(x_client_type)
+    # await validate_auth(authorization)
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -294,7 +395,15 @@ async def add_customer(customer: CustomerBase, response: Response):
             conn.close()
 
 @app.get("/customers/{id}", response_model=CustomerResponse)
-def get_customer(id: int):
+async def get_customer(
+    id: int,
+    x_client_type: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
+):
+    # Validate headers only for BFF service
+    # await validate_client_type(x_client_type)
+    # await validate_auth(authorization)
+
     try:
         if id <= 0:
             raise HTTPException(
@@ -309,21 +418,35 @@ def get_customer(id: int):
         cursor.execute("SELECT * FROM Customers WHERE id = %s", (id,))
         customer = cursor.fetchone()
 
-        cursor.close()
-        conn.close()
-
         if not customer:
-            raise HTTPException(status_code=404, detail={"message": "Customer not found"})
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
+
 
         return customer
-    except ValueError:
+
+    except HTTPException as e:
+        raise e
+    except Exception as err:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid customer ID format"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(err)
         )
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 @app.get("/customers", response_model=CustomerResponse)
-def get_customer_by_userId(userId: str = Query(..., description="Customer email address (userId)")):
+async def get_customer_by_userId(
+    userId: str = Query(..., description="Customer email address (userId)"),
+    x_client_type: Optional[str] = Header(None),
+    authorization: Optional[str] = Header(None)
+):
+    # Validate headers only for BFF service
+    # await validate_client_type(x_client_type)
+    # await validate_auth(authorization)
+
     # Validate email format
     if '@' not in userId or '.' not in userId or ' ' in userId:
         raise HTTPException(
@@ -335,21 +458,16 @@ def get_customer_by_userId(userId: str = Query(..., description="Customer email 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        try:
-            cursor.execute("SELECT * FROM Customers WHERE userId = %s", (userId,))
-            customer = cursor.fetchone()
+        cursor.execute("SELECT * FROM Customers WHERE userId = %s", (userId,))
+        customer = cursor.fetchone()
 
-            if not customer:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Customer not found"
-                )
+        if not customer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Customer not found"
+            )
 
-            return customer
-
-        finally:
-            cursor.close()
-            conn.close()
+        return customer
 
     except HTTPException as e:
         raise e
@@ -358,6 +476,11 @@ def get_customer_by_userId(userId: str = Query(..., description="Customer email 
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(err)
         )
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 @app.get("/status", response_model=str)
 def health_check():
