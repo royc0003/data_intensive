@@ -260,13 +260,13 @@ async def add_book(
         json=book_dict
     )
 
-    if status_code == 201:
-        # Set Location header
-        response.headers["Location"] = f"/books/{book.ISBN}"
+    # if status_code == 201:
+    #     # Set Location header
+    #     response.headers["Location"] = f"/books/{book.ISBN}"
 
-        # Format response for mobile clients (case-insensitive check)
-        if x_client_type.lower() in ["ios", "android"] and data["genre"] == "non-fiction":
-            data["genre"] = "3"
+    #     # Format response for mobile clients (case-insensitive check)
+    #     if x_client_type.lower() in ["ios", "android"] and data["genre"] == "non-fiction":
+    #         data["genre"] = "3"
 
     return data
 
@@ -308,10 +308,10 @@ async def update_book(
         json=book_dict
     )
 
-    if status_code == 200:
-        # Format response for mobile clients (case-insensitive check)
-        if x_client_type.lower() in ["ios", "android"] and data["genre"] == "non-fiction":
-            data["genre"] = "3"
+    # if status_code == 200:
+    #     # Format response for mobile clients (case-insensitive check)
+    #     if x_client_type.lower() in ["ios", "android"] and data["genre"] == "non-fiction":
+    #         data["genre"] = "3"
 
     return data
 
@@ -339,7 +339,8 @@ async def get_book(
     if status_code == 200:
         # Format response for mobile clients (case-insensitive check)
         if x_client_type.lower() in ["ios", "android"] and data["genre"] == "non-fiction":
-            data["genre"] = "3"
+            # Convert to integer 3 instead of string "3"
+            data["genre"] = 3
 
     return data
 

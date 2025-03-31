@@ -310,9 +310,9 @@ async def get_book(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 
         # Handle mobile app specific requirement for BFF service
-        if IS_BFF_SERVICE and x_client_type in ["iOS", "Android"]:
-            if book["genre"] == "non-fiction":
-                book["genre"] = "3"
+        # if IS_BFF_SERVICE and x_client_type in ["iOS", "Android"]:
+        #     if book["genre"] == "non-fiction":
+        #         book["genre"] = "3"
 
         return book
 
