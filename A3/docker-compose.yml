@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    image: ${DOCKER_USERNAME}/bookstore-api:latest
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=${RDS_ENDPOINT}
+      - DB_USER=${RDS_USERNAME}
+      - DB_PASSWORD=${RDS_PASSWORD}
+      - DB_NAME=Bookstore
+    networks:
+      - bookstore-network
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=Bookstore
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bookstore-network
+
+volumes:
+  mysql-data:
+
+networks:
+  bookstore-network:
+    driver: bridge 
