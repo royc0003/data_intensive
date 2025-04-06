@@ -12,6 +12,12 @@ build:
 	# cd customer-service && docker build -f Dockerfile.customer-service -t ${DOCKER_REGISTRY}/bookstore-api:3 ..
 	# cd book-service && docker build -f Dockerfile.book-service -t ${DOCKER_REGISTRY}/bookstore-api:4 ..
 
+push:
+	docker push ${DOCKER_REGISTRY}/bookstore-api:1
+	docker push ${DOCKER_REGISTRY}/bookstore-api:2
+	# docker push ${DOCKER_REGISTRY}/bookstore-api:3
+	# docker push ${DOCKER_REGISTRY}/bookstore-api:4
+
 # Apply Kubernetes configuration files
 apply: build
 	@echo "Applying Kubernetes configs..."
