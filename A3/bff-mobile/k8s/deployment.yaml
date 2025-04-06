@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: bff-mobile
-          image: <your-dockerhub-username>/bff-mobile:latest
+          image: royc003/bookstore-api:2 
           ports:
             - containerPort: 80
           livenessProbe:
