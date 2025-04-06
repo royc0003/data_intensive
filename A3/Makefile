@@ -1,0 +1,51 @@
+# Variables
+DOCKER_REGISTRY = royc003
+NAMESPACE = bookstore-ns
+SERVICES = book-service bff-web bff-mobile customer-service crm-service
+
+# Build Docker images
+build: 
+    @echo "Building Docker images..."
+    docker build -t $(DOCKER_REGISTRY)/book-service:latest ./book-service
+    docker build -t $(DOCKER_REGISTRY)/bff-web:latest ./bff-web
+    docker build -t $(DOCKER_REGISTRY)/bff-mobile:latest ./bff-mobile
+    docker build -t $(DOCKER_REGISTRY)/customer-service:latest ./customer-service
+    docker build -t $(DOCKER_REGISTRY)/crm-service:latest ./crm-service
+
+# Apply Kubernetes configuration files
+apply: build
+    @echo "Applying Kubernetes configs..."
+    kubectl apply -f k8s/namespace.yaml
+    kubectl apply -f k8s/book-service-deployment.yaml
+    kubectl apply -f k8s/book-service-service.yaml
+    kubectl apply -f k8s/bff-web-deployment.yaml
+    kubectl apply -f k8s/bff-web-service.yaml
+    kubectl apply -f k8s/bff-mobile-deployment.yaml
+    kubectl apply -f k8s/bff-mobile-service.yaml
+    kubectl apply -f k8s/customer-service-deployment.yaml
+    kubectl apply -f k8s/customer-service-service.yaml
+    kubectl apply -f k8s/crm-service-deployment.yaml
+
+# Get service URLs (useful for checking EXTERNAL-IP)
+get-urls:
+    @echo "Fetching service URLs..."
+    kubectl get services -n $(NAMESPACE)
+
+# Port forward (optional for local testing)
+port-forward: 
+    @echo "Forwarding ports to local machine..."
+    kubectl port-forward service/book-service 3000:3000 -n $(NAMESPACE) &
+    kubectl port-forward service/bff-web 80:80 -n $(NAMESPACE) &
+    kubectl port-forward service/bff-mobile 80:80 -n $(NAMESPACE) &
+
+# Clean up Kubernetes resources
+clean:
+    @echo "Cleaning up Kubernetes resources..."
+    kubectl delete -f k8s/
+	kubectl delete -f bff-web/k8s/
+	kubectl delete -f bff-mobile/k8s/
+	kubectl delete -f customer-service/k8s/
+	kubectl delete -f crm-service/k8s/
+	kubectl delete -f book-service/k8s/
+
+.PHONY: build apply get-urls port-forward clean

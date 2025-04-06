@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bff-mobile
+  namespace: bookstore-ns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bff-mobile
+  template:
+    metadata:
+      labels:
+        app: bff-mobile
+    spec:
+      containers:
+        - name: bff-mobile
+          image: <your-dockerhub-username>/bff-mobile:latest
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10

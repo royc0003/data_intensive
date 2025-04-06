@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bff-web
+  namespace: bookstore-ns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bff-web
+  template:
+    metadata:
+      labels:
+        app: bff-web
+    spec:
+      containers:
+        - name: bff-web
+          image: <your-dockerhub-username>/bff-web:latest
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
