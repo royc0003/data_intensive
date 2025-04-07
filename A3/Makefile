@@ -16,7 +16,7 @@ push:
 	docker push ${DOCKER_REGISTRY}/bookstore-api:1
 	docker push ${DOCKER_REGISTRY}/bookstore-api:2
 	# docker push ${DOCKER_REGISTRY}/bookstore-api:3
-	# docker push ${DOCKER_REGISTRY}/bookstore-api:4
+	docker push ${DOCKER_REGISTRY}/bookstore-api:4
 
 # Apply Kubernetes configuration files
 apply: build
@@ -24,14 +24,15 @@ apply: build
 	kubectl apply -f k8s/namespace.yaml
 	# kubectl apply -f bff-web/k8s/deployment.yaml
 	# kubectl apply -f bff-web/k8s/service.yaml
-	kubectl apply -f bff-mobile/k8s/deployment.yaml
-	kubectl apply -f bff-mobile/k8s/service.yaml
-	# kubectl apply -f book-service/k8s/deployment.yaml
-	# kubectl apply -f book-service/k8s/service.yaml
+	# kubectl apply -f bff-mobile/k8s/deployment.yaml
+	# kubectl apply -f bff-mobile/k8s/service.yaml
+	kubectl apply -f book-service/k8s/deployment.yaml
+	kubectl apply -f book-service/k8s/service.yaml
 	# kubectl apply -f customer-service/k8s/deployment.yaml
 	# kubectl apply -f customer-service/k8s/service.yaml
 	# kubectl apply -f crm-service/k8s/deployment.yaml
 	# kubectl apply -f crm-service/k8s/service.yaml
+	kubectl create secret generic db-credentials --from-literal=password=password -n bookstore-ns
 
 # Get service URLs (useful for checking EXTERNAL-IP)
 get-urls:
@@ -41,18 +42,18 @@ get-urls:
 # Port forward (optional for local testing)
 port-forward:
 	@echo "Forwarding ports to local machine..."
-	# kubectl port-forward service/book-service 3000:3000 -n $(NAMESPACE) &
+	kubectl port-forward service/book-service 8080:3000 -n $(NAMESPACE) &
 	# kubectl port-forward service/bff-web 8081:80 -n $(NAMESPACE) &
-	kubectl port-forward service/bff-mobile 8800:80 -n $(NAMESPACE) &
+	# kubectl port-forward service/bff-mobile 8800:80 -n $(NAMESPACE) &
 
 # Clean up Kubernetes resources
 clean:
 	@echo "Cleaning up Kubernetes resources..."
-	kubectl delete -f bff-web/k8s/
-	kubectl delete -f bff-mobile/k8s/
-	kubectl delete -f k8s/
-	kubectl delete -f customer-service/k8s/
-	kubectl delete -f crm-service/k8s/
+	# kubectl delete -f bff-web/k8s/
+	# kubectl delete -f bff-mobile/k8s/
+	# kubectl delete -f customer-service/k8s/
+	# kubectl delete -f crm-service/k8s/
 	kubectl delete -f book-service/k8s/
+	kubectl delete -f k8s/
 
 .PHONY: build apply get-urls port-forward clean

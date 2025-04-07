@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: book-service
-          image: <your-dockerhub-username>/book-service:latest
+          image: royc003/bookstore-api:4
           ports:
             - containerPort: 3000
           volumeMounts:
