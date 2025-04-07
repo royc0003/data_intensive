@@ -7,10 +7,10 @@ SERVICES = book-service bff-web bff-mobile customer-service crm-service
 build:
 	@echo "Building Docker images..."
 	# Move to the parent directory to execute the build commands
-	docker build -f bff-web/Dockerfile.web-bff -t ${DOCKER_REGISTRY}/bookstore-api:1 .
-	docker build -f bff-mobile/Dockerfile.mobile-bff -t ${DOCKER_REGISTRY}/bookstore-api:2 .
+	# docker build -f bff-web/Dockerfile.web-bff -t ${DOCKER_REGISTRY}/bookstore-api:1 .
+	# docker build -f bff-mobile/Dockerfile.mobile-bff -t ${DOCKER_REGISTRY}/bookstore-api:2 .
 	# docker build -f customer-service/Dockerfile.customer-service -t ${DOCKER_REGISTRY}/bookstore-api:3 .
-	# docker build -f book-service/Dockerfile.book-service -t ${DOCKER_REGISTRY}/bookstore-api:4 .
+	docker build -f book-service/Dockerfile.book-service -t ${DOCKER_REGISTRY}/bookstore-api:4 .
 
 push:
 	docker push ${DOCKER_REGISTRY}/bookstore-api:1

@@ -36,15 +36,15 @@ async def validate_client_type(x_client_type: Optional[str] = Header(None)):
             )
     return x_client_type
 
-async def validate_auth(authorization: Optional[str] = Header(None)):
-    if IS_BFF_SERVICE:
-        if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing Authorization header"
-            )
-        validate_jwt_token(authorization)
-    return authorization
+# async def validate_auth(authorization: Optional[str] = Header(None)):
+#     if IS_BFF_SERVICE:
+#         if not authorization:
+#             raise HTTPException(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 detail="Missing Authorization header"
+#             )
+#         validate_jwt_token(authorization)
+#     return authorization
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):

@@ -25,8 +25,10 @@ RUN apt-get update \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+# Copy application code (THIS IMPORTANT LINE WAS MISSING)
+COPY book-service/main.py .
+
+COPY jwt_validator.py .
 
 # Copy and make the entrypoint script executable
 COPY docker-entrypoint.sh .
