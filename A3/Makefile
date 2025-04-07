@@ -42,7 +42,8 @@ get-urls:
 # Port forward (optional for local testing)
 port-forward:
 	@echo "Forwarding ports to local machine..."
-	kubectl port-forward service/book-service 8080:3000 -n $(NAMESPACE) &
+	kubectl port-forward service/customer-service 8081:3000 -n $(NAMESPACE) &
+	# kubectl port-forward service/book-service 8080:3000 -n $(NAMESPACE) &
 	# kubectl port-forward service/bff-web 8081:80 -n $(NAMESPACE) &
 	# kubectl port-forward service/bff-mobile 8800:80 -n $(NAMESPACE) &
 
@@ -51,9 +52,9 @@ clean:
 	@echo "Cleaning up Kubernetes resources..."
 	# kubectl delete -f bff-web/k8s/
 	# kubectl delete -f bff-mobile/k8s/
-	# kubectl delete -f customer-service/k8s/
+	kubectl delete -f customer-service/k8s/
 	# kubectl delete -f crm-service/k8s/
-	kubectl delete -f book-service/k8s/
+	# kubectl delete -f book-service/k8s/
 	kubectl delete -f k8s/
 
 .PHONY: build apply get-urls port-forward clean
