@@ -25,12 +25,19 @@ RUN apt-get update \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Create the correct directory structure for relative imports
+RUN mkdir -p /app/services/shared
+
+# Copy shared modules
+COPY archive/services/shared/ /app/services/shared/
+# Create __init__.py files to make them proper packages
+RUN touch /app/services/shared/__init__.py
+
 # Copy application code
-COPY . .
-COPY ../archive/services/shared/ .
+COPY bff-web/main.py .
 
 # Copy and make the entrypoint script executable
-COPY ../docker-bff-entrypoint.sh .
+COPY docker-bff-entrypoint.sh .
 RUN chmod +x docker-bff-entrypoint.sh
 
 # Expose port 80
