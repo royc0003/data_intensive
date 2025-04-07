@@ -25,6 +25,11 @@ RUN apt-get update \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy application code (THIS IMPORTANT LINE WAS MISSING)
+COPY customer-service/main.py .
+
+COPY jwt_validator.py .
+
 # Copy application code
 COPY . .
 
