@@ -1,3 +1,4 @@
+import httpx
 from fastapi import FastAPI, HTTPException, Header, Response, Query, status, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
