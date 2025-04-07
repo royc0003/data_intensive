@@ -22,16 +22,16 @@ push:
 apply: build
 	@echo "Applying Kubernetes configs..."
 	kubectl apply -f k8s/namespace.yaml
-	kubectl apply -f k8s/bff-web/deployment.yaml
-	kubectl apply -f k8s/bff-web/service.yaml
-	kubectl apply -f k8s/bff-mobile/deployment.yaml
-	kubectl apply -f k8s/bff-mobile/service.yaml
-	# kubectl apply -f k8s/book-service/deployment.yaml
-	# kubectl apply -f k8s/book-service/service.yaml
-	# kubectl apply -f k8s/customer-service/deployment.yaml
-	# kubectl apply -f k8s/customer-service/service.yaml
-	# kubectl apply -f k8s/crm-service/deployment.yaml
-	# kubectl apply -f k8s/crm-service/service.yaml
+	kubectl apply -f bff-web/k8s/deployment.yaml
+	kubectl apply -f bff-web/k8s/service.yaml
+	kubectl apply -f bff-mobile/k8s/deployment.yaml
+	kubectl apply -f bff-mobile/k8s/service.yaml
+	# kubectl apply -f book-service/k8s/deployment.yaml
+	# kubectl apply -f book-service/k8s/service.yaml
+	# kubectl apply -f customer-service/k8s/deployment.yaml
+	# kubectl apply -f customer-service/k8s/service.yaml
+	# kubectl apply -f crm-service/k8s/deployment.yaml
+	# kubectl apply -f crm-service/k8s/service.yaml
 
 # Get service URLs (useful for checking EXTERNAL-IP)
 get-urls:
