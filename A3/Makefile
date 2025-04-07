@@ -8,7 +8,7 @@ build:
 	@echo "Building Docker images..."
 	# Move to the parent directory to execute the build commands
 	docker build -f bff-web/Dockerfile.web-bff -t ${DOCKER_REGISTRY}/bookstore-api:1 .
-	# docker build -f bff-mobile/Dockerfile.mobile-bff -t ${DOCKER_REGISTRY}/bookstore-api:2 .
+	docker build -f bff-mobile/Dockerfile.mobile-bff -t ${DOCKER_REGISTRY}/bookstore-api:2 .
 	# docker build -f customer-service/Dockerfile.customer-service -t ${DOCKER_REGISTRY}/bookstore-api:3 .
 	# docker build -f book-service/Dockerfile.book-service -t ${DOCKER_REGISTRY}/bookstore-api:4 .
 
@@ -24,8 +24,8 @@ apply: build
 	kubectl apply -f k8s/namespace.yaml
 	kubectl apply -f bff-web/k8s/deployment.yaml
 	kubectl apply -f bff-web/k8s/service.yaml
-	# kubectl apply -f bff-mobile/k8s/deployment.yaml
-	# kubectl apply -f bff-mobile/k8s/service.yaml
+	kubectl apply -f bff-mobile/k8s/deployment.yaml
+	kubectl apply -f bff-mobile/k8s/service.yaml
 	# kubectl apply -f book-service/k8s/deployment.yaml
 	# kubectl apply -f book-service/k8s/service.yaml
 	# kubectl apply -f customer-service/k8s/deployment.yaml
@@ -42,15 +42,15 @@ get-urls:
 port-forward:
 	@echo "Forwarding ports to local machine..."
 	# kubectl port-forward service/book-service 3000:3000 -n $(NAMESPACE) &
-	kubectl port-forward service/bff-web 8080:80 -n $(NAMESPACE) &
-	# kubectl port-forward service/bff-mobile 80:80 -n $(NAMESPACE) &
+	kubectl port-forward service/bff-web 8081:80 -n $(NAMESPACE) &
+	kubectl port-forward service/bff-mobile 8800:80 -n $(NAMESPACE) &
 
 # Clean up Kubernetes resources
 clean:
 	@echo "Cleaning up Kubernetes resources..."
-	kubectl delete -f k8s/
 	kubectl delete -f bff-web/k8s/
 	kubectl delete -f bff-mobile/k8s/
+	kubectl delete -f k8s/
 	kubectl delete -f customer-service/k8s/
 	kubectl delete -f crm-service/k8s/
 	kubectl delete -f book-service/k8s/
