@@ -22,8 +22,8 @@ push:
 apply: build
 	@echo "Applying Kubernetes configs..."
 	kubectl apply -f k8s/namespace.yaml
-	kubectl apply -f bff-web/k8s/deployment.yaml
-	kubectl apply -f bff-web/k8s/service.yaml
+	# kubectl apply -f bff-web/k8s/deployment.yaml
+	# kubectl apply -f bff-web/k8s/service.yaml
 	kubectl apply -f bff-mobile/k8s/deployment.yaml
 	kubectl apply -f bff-mobile/k8s/service.yaml
 	# kubectl apply -f book-service/k8s/deployment.yaml
@@ -42,7 +42,7 @@ get-urls:
 port-forward:
 	@echo "Forwarding ports to local machine..."
 	# kubectl port-forward service/book-service 3000:3000 -n $(NAMESPACE) &
-	kubectl port-forward service/bff-web 8081:80 -n $(NAMESPACE) &
+	# kubectl port-forward service/bff-web 8081:80 -n $(NAMESPACE) &
 	kubectl port-forward service/bff-mobile 8800:80 -n $(NAMESPACE) &
 
 # Clean up Kubernetes resources

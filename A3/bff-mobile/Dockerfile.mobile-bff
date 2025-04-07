@@ -34,7 +34,7 @@ COPY archive/services/shared/ /app/services/shared/
 RUN touch /app/services/shared/__init__.py
 
 # Copy application code
-COPY bff-web/main.py .
+COPY bff-mobile/main.py .
 
 # Copy and make the entrypoint script executable
 COPY docker-bff-entrypoint.sh .
