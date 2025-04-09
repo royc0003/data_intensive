@@ -31,17 +31,32 @@ push:
 apply: build
 	@echo "Applying Kubernetes configs..."
 	kubectl apply -f k8s/namespace.yaml
+
+apply-bff-web:
+	@echo "Applying Kubernetes configs for BFF Web..."
 	kubectl apply -f bff-web/k8s/deployment.yaml
 	kubectl apply -f bff-web/k8s/service.yaml
+
+apply-bff-mobile:
+	@echo "Applying Kubernetes configs for BFF Mobile..."
 	kubectl apply -f bff-mobile/k8s/deployment.yaml
 	kubectl apply -f bff-mobile/k8s/service.yaml
-	kubectl apply -f book-service/k8s/deployment.yaml
-	kubectl apply -f book-service/k8s/service.yaml
+
+apply-cusomter-service:
+	@echo "Applying Kubernetes configs for Customer Service..."
 	kubectl apply -f customer-service/k8s/deployment.yaml
 	kubectl apply -f customer-service/k8s/service.yaml
+
+apply-book-service:
+	@echo "Applying Kubernetes configs for Book Service..."
+	kubectl apply -f book-service/k8s/deployment.yaml
+	kubectl apply -f book-service/k8s/service.yaml
+
+apply-crm-service:
+	@echo "Applying Kubernetes configs for CRM Service..."
 	kubectl apply -f crm-service/k8s/deployment.yaml
 	kubectl apply -f crm-service/k8s/service.yaml
-	# kubectl create secret generic db-credentials --from-literal=password=password -n bookstore-ns
+
 
 # Get service URLs (useful for checking EXTERNAL-IP)
 get-urls:
