@@ -10,6 +10,7 @@ make_folders_server:
 	mkdir -p $(PWD)/bff-mobile/k8s
 	mkdir -p $(PWD)/customer-service/k8s
 	mkdir -p $(PWD)/crm-service/k8s
+	mkdir -p $(PWD)/k8s
 
 # Build Docker images
 build:

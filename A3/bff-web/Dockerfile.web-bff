@@ -6,7 +6,7 @@ WORKDIR /app
 # Set environment variables with local defaults
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DB_HOST=bookstore-db-dev.cluster-csdxv2900nel.us-east-1.rds.amazonaws.com \
+    DB_HOST=bookstore-db-dev.cluster-cdljphha5o85.us-east-1.rds.amazonaws.com \
     DB_USER=root \
     DB_PASSWORD=password \
     DB_NAME=Bookstore \
