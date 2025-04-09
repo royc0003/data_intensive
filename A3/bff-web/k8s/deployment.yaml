@@ -16,6 +16,11 @@ spec:
       containers:
         - name: bff-web
           image: royc003/bookstore-api:1 
+          env:
+            - name: BOOKS_SERVICE_URL
+              value: "http://book-service.bookstore-ns:3000"
+            - name: CUSTOMERS_SERVICE_URL
+              value: "http://customer-service.bookstore-ns:3000"
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
