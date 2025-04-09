@@ -41,7 +41,7 @@ COPY docker-bff-entrypoint.sh .
 RUN chmod +x docker-bff-entrypoint.sh
 
 # Expose port 80
-EXPOSE 80
+EXPOSE 8080
 
 # Create non-root user
 RUN adduser --disabled-password --gecos '' appuser
