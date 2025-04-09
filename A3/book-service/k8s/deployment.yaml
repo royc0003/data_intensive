@@ -23,7 +23,7 @@ spec:
               mountPath: /mnt/circuit
           env:
             - name: DB_HOST
-              value: bookstore-db-dev.cluster-xxxxx.us-east-1.rds.amazonaws.com
+              value: bookstore-db-dev.cluster-cdljphha5o85.us-east-1.rds.amazonaws.com
             - name: DB_USER
               value: Bookstore
             - name: DB_PASSWORD
