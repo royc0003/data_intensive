@@ -18,6 +18,21 @@ spec:
           image: royc003/bookstore-api:4
           ports:
             - containerPort: 3000
+          # Add probes
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 3000
+            initialDelaySeconds: 15  # Give container time to start
+            periodSeconds: 20        # How often to perform the probe
+            timeoutSeconds: 5        # Timeout for probe
+            failureThreshold: 3      # Number of failures before restarting
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
           volumeMounts:
             - name: circuit-breaker-volume
               mountPath: /mnt/circuit

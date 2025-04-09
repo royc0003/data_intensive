@@ -68,6 +68,8 @@ port-forward:
 setup-namespace:
 	@echo "Creating namespace $(NAMESPACE)..."
 	kubectl create namespace $(NAMESPACE)
+
+setup-secrets:
 	@echo "Creating required secrets..."
 	kubectl create secret generic db-credentials --from-literal=password=password -n $(NAMESPACE)
 
