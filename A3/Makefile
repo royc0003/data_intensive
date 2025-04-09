@@ -41,7 +41,7 @@ apply: build
 	kubectl apply -f customer-service/k8s/service.yaml
 	kubectl apply -f crm-service/k8s/deployment.yaml
 	kubectl apply -f crm-service/k8s/service.yaml
-	kubectl create secret generic db-credentials --from-literal=password=password -n bookstore-ns
+	# kubectl create secret generic db-credentials --from-literal=password=password -n bookstore-ns
 
 # Get service URLs (useful for checking EXTERNAL-IP)
 get-urls:

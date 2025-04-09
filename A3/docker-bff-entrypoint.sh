@@ -53,4 +53,4 @@ export UVICORN_LOG_LEVEL=${UVICORN_LOG_LEVEL:-info}
 
 # Set higher timeouts for the BFF service
 # exec uvicorn services.bff.main:app --host 0.0.0.0 --port 80 --workers 4 --timeout-keep-alive 75 --log-level $UVICORN_LOG_LEVEL
-exec uvicorn main:app --host 0.0.0.0 --port 80 --workers 4 --timeout-keep-alive 75 --log-level $UVICORN_LOG_LEVEL
+exec uvicorn main:app --host 0.0.0.0 --port 8080 --workers 4 --timeout-keep-alive 75 --log-level $UVICORN_LOG_LEVEL
