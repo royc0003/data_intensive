@@ -3,6 +3,14 @@ DOCKER_REGISTRY = royc003
 NAMESPACE = bookstore-ns
 SERVICES = book-service bff-web bff-mobile customer-service crm-service
 
+make_folders_server:
+	@echo "Creating folders on server..."
+	mkdir -p $(PWD)/book-service/k8s
+	mkdir -p $(PWD)/bff-web/k8s
+	mkdir -p $(PWD)/bff-mobile/k8s
+	mkdir -p $(PWD)/customer-service/k8s
+	mkdir -p $(PWD)/crm-service/k8s
+
 # Build Docker images
 build:
 	@echo "Building Docker images..."
