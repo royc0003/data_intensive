@@ -25,7 +25,7 @@ class CustomJSONEncoder(json.JSONEncoder):
 app = FastAPI()
 
 # Service URLs
-BOOKS_SERVICE_URL = os.getenv("BOOKS_SERVICE_URL", "http://book-service.bookstore-ns:3000")
+BOOKS_SERVICE_URL = os.getenv("BOOKS_SERVICE_URL", "http://afd57170d7ee842cfa042958e462e217-576919927.us-east-1.elb.amazonaws.com:3000")
 CUSTOMERS_SERVICE_URL = os.getenv("CUSTOMERS_SERVICE_URL", "http://customer-service.bookstore-ns:3000")
 
 # Timeout settings
