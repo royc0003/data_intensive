@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException, Header, Response, Query, status, Req
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, constr, condecimal, conint, EmailStr, validator, ValidationError
+from services.shared.models import RelatedBook
 from typing import Optional
 import mariadb
 import os
@@ -27,12 +28,6 @@ CIRCUIT_BREAKER_THRESHOLD = 5  # Number of failures before opening circuit
 CIRCUIT_BREAKER_TIMEOUT = 60   # Seconds to keep circuit open
 CIRCUIT_BREAKER_FILE = "/mnt/circuit/circuit_state.json"
 REQUEST_TIMEOUT = 5.0  # Timeout for external service calls in seconds
-
-# Model for related book response
-class RelatedBook(BaseModel):
-    title: str
-    authors: str
-    isbn: str
     
 
 # Determine if this is a BFF service based on port
@@ -348,7 +343,7 @@ async def get_book(
 
 
 # Related books endpoint
-@app.get("/recommended-titles/isbn/{ISBN}", response_model=List[RelatedBook])
+@app.get("/books/{ISBN}/related-books", response_model=List[RelatedBook])
 async def get_related_books(
     ISBN: str,
     response: Response,
@@ -370,7 +365,7 @@ async def get_related_books(
         async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
             # Make request to recommendation service
             response = await client.get(
-                f"{RECOMMENDATION_SERVICE_URL}/recommendations/{ISBN}"
+                f"{RECOMMENDATION_SERVICE_URL}/recommended-titles/isbn/{ISBN}"
             )
 
             # Handle different response scenarios

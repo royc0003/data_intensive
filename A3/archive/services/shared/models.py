@@ -70,3 +70,7 @@ class MobileCustomerResponse(BaseModel):
     name: str
     phone: str 
     
+class RelatedBook(BaseModel):
+    title: str
+    authors: str
+    isbn: str

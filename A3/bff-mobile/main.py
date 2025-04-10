@@ -1,11 +1,11 @@
 from fastapi import FastAPI, HTTPException, Header, Response, Query, status, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, PlainTextResponse
-from typing import Optional, Union, Dict, Any
+from typing import List, Optional, Union, Dict, Any
 import httpx
 import asyncio
 from services.shared.models import Book, CustomerBase, CustomerResponse, MobileCustomerResponse
-from services.shared.auth import validate_client_type, validate_auth
+from services.shared.auth import validate_client_type, validate_auth, RelatedBook
 import os
 import logging
 import json
@@ -343,6 +343,28 @@ async def get_book(
             # Convert to integer 3 instead of string "3"
             data["genre"] = 3
 
+    return data
+
+@app.get("/books/{ISBN}/related-books", response_model=List[RelatedBook])
+async def get_related_books(
+    ISBN: str,
+    x_client_type: str = Header(...),
+    authorization: str = Header(...)
+):
+    # Validate headers
+    await validate_client_type(x_client_type)
+    await validate_auth(authorization)
+    
+    # Forward request to book service
+    status_code, data = await forward_request(
+        "GET",
+        f"{BOOKS_SERVICE_URL}/books/{ISBN}/related-books",
+        headers={"Authorization": authorization}
+    )
+
+    if status_code == 204:
+        return []
+        
     return data
 
 @app.post("/customers", status_code=status.HTTP_201_CREATED)
