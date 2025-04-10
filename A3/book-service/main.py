@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, Header, Response, Query, status, Req
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, constr, condecimal, conint, EmailStr, validator, ValidationError
-from archive.services.shared.models import RelatedBook
+from services.shared.models import RelatedBook
 from typing import Optional
 import mariadb
 import os
