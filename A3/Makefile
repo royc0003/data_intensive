@@ -28,7 +28,7 @@ push:
 	docker push ${DOCKER_REGISTRY}/bookstore-api:4
 
 # Apply Kubernetes configuration files
-apply: build
+apply:
 	@echo "Applying Kubernetes configs..."
 	kubectl apply -f k8s/namespace.yaml
 

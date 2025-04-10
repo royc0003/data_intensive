@@ -43,6 +43,9 @@ spec:
                   key: password
             - name: DB_NAME
               value: Bookstore
+            # Add the recommendation service URL directly here
+            - name: RECOMMENDATION_SERVICE_URL
+              value: "http://3.130.6.49:80"
       volumes:
         - name: circuit-breaker-volume
           emptyDir: {}
