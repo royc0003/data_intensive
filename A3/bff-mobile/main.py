@@ -4,8 +4,8 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from typing import List, Optional, Union, Dict, Any
 import httpx
 import asyncio
-from services.shared.models import Book, CustomerBase, CustomerResponse, MobileCustomerResponse
-from services.shared.auth import validate_client_type, validate_auth, RelatedBook
+from archive.services.shared.models import Book, CustomerBase, CustomerResponse, MobileCustomerResponse, RelatedBook
+from archive.services.shared.auth import validate_client_type, validate_auth
 import os
 import logging
 import json
