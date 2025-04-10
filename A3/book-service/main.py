@@ -1,3 +1,5 @@
+from typing import List, Optional  # Add List to your imports
+
 import httpx
 from fastapi import FastAPI, HTTPException, Header, Response, Query, status, Request
 from fastapi.exceptions import RequestValidationError
@@ -346,73 +348,73 @@ async def get_book(
 
 
 # Related books endpoint
-@app.get("/books/{ISBN}/related-books", response_model=List[RelatedBook])
-async def get_related_books(
-    ISBN: str,
-    response: Response,
-    x_client_type: Optional[str] = Header(None),
-    authorization: Optional[str] = Header(None)
-):
-    # Check circuit breaker state
-    # if not await circuit_breaker.check_state():
-    #     raise HTTPException(
-    #         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-    #         detail="Service temporarily unavailable due to circuit breaker"
-    #     )
+# @app.get("/books/{ISBN}/related-books", response_model=List[RelatedBook])
+# async def get_related_books(
+#     ISBN: str,
+#     response: Response,
+#     x_client_type: Optional[str] = Header(None),
+#     authorization: Optional[str] = Header(None)
+# ):
+#     # Check circuit breaker state
+#     # if not await circuit_breaker.check_state():
+#     #     raise HTTPException(
+#     #         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+#     #         detail="Service temporarily unavailable due to circuit breaker"
+#     #     )
 
-    # External service URL (replace with actual URL from Canvas)
-    RECOMMENDATION_SERVICE_URL = os.getenv(
-        "RECOMMENDATION_SERVICE_URL", 
-        "http://recommendation-service:8080"
-    )
+#     # External service URL (replace with actual URL from Canvas)
+#     RECOMMENDATION_SERVICE_URL = os.getenv(
+#         "RECOMMENDATION_SERVICE_URL", 
+#         "http://recommendation-service:8080"
+#     )
     
-    try:
-        async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
-            # Make request to recommendation service
-            response = await client.get(
-                f"{RECOMMENDATION_SERVICE_URL}/recommendations/{ISBN}"
-            )
+#     try:
+#         async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
+#             # Make request to recommendation service
+#             response = await client.get(
+#                 f"{RECOMMENDATION_SERVICE_URL}/recommendations/{ISBN}"
+#             )
 
-            # Handle different response scenarios
-            if response.status_code == 200:
-                # Record successful call
-                # await circuit_breaker.record_success()
+#             # Handle different response scenarios
+#             if response.status_code == 200:
+#                 # Record successful call
+#                 # await circuit_breaker.record_success()
                 
-                # Parse and return recommendations
-                recommendations = response.json()
-                if not recommendations:
-                    response.status_code = status.HTTP_204_NO_CONTENT
-                    return []
-                return recommendations
+#                 # Parse and return recommendations
+#                 recommendations = response.json()
+#                 if not recommendations:
+#                     response.status_code = status.HTTP_204_NO_CONTENT
+#                     return []
+#                 return recommendations
 
-            elif response.status_code == 404:
-                # ISBN not found
-                response.status_code = status.HTTP_204_NO_CONTENT
-                return []
+#             elif response.status_code == 404:
+#                 # ISBN not found
+#                 response.status_code = status.HTTP_204_NO_CONTENT
+#                 return []
 
-            else:
-                # Handle unexpected response
-                # await circuit_breaker.record_failure()
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail="Unexpected response from recommendation service"
-                )
+#             else:
+#                 # Handle unexpected response
+#                 # await circuit_breaker.record_failure()
+#                 raise HTTPException(
+#                     status_code=status.HTTP_502_BAD_GATEWAY,
+#                     detail="Unexpected response from recommendation service"
+#                 )
 
-    except httpx.TimeoutException:
-        # Handle timeout
-        # await circuit_breaker.record_failure()
-        raise HTTPException(
-            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-            detail="Recommendation service timed out"
-        )
+#     except httpx.TimeoutException:
+#         # Handle timeout
+#         # await circuit_breaker.record_failure()
+#         raise HTTPException(
+#             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+#             detail="Recommendation service timed out"
+#         )
     
-    except Exception as e:
-        # Handle other errors
-        # await circuit_breaker.record_failure()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error accessing recommendation service: {str(e)}"
-        )
+#     except Exception as e:
+#         # Handle other errors
+#         # await circuit_breaker.record_failure()
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"Error accessing recommendation service: {str(e)}"
+#         )
 
 @app.post("/customers", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)
 async def add_customer(

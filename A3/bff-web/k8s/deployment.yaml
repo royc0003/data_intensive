@@ -28,5 +28,5 @@ spec:
             httpGet:
               path: /status
               port: 8080
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 30
+            periodSeconds: 15

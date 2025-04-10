@@ -55,4 +55,4 @@ else
 fi
 
 echo "Starting service on port $PORT with $WORKERS workers"
-exec uvicorn main:app --host 0.0.0.0 --port 3000 --workers $WORKERS --timeout-keep-alive 75
+exec uvicorn main:app --host 0.0.0.0 --port "$PORT" --workers "$WORKERS" --timeout-keep-alive 75

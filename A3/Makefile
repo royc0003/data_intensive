@@ -34,28 +34,28 @@ apply: build
 
 apply-bff-web:
 	@echo "Applying Kubernetes configs for BFF Web..."
-	kubectl apply -f bff-web/k8s/deployment.yaml
 	kubectl apply -f bff-web/k8s/service.yaml
+	kubectl apply -f bff-web/k8s/deployment.yaml
 
 apply-bff-mobile:
 	@echo "Applying Kubernetes configs for BFF Mobile..."
-	kubectl apply -f bff-mobile/k8s/deployment.yaml
 	kubectl apply -f bff-mobile/k8s/service.yaml
+	kubectl apply -f bff-mobile/k8s/deployment.yaml
 
 apply-cusomter-service:
 	@echo "Applying Kubernetes configs for Customer Service..."
-	kubectl apply -f customer-service/k8s/deployment.yaml
 	kubectl apply -f customer-service/k8s/service.yaml
+	kubectl apply -f customer-service/k8s/deployment.yaml
 
 apply-book-service:
 	@echo "Applying Kubernetes configs for Book Service..."
-	kubectl apply -f book-service/k8s/deployment.yaml
 	kubectl apply -f book-service/k8s/service.yaml
+	kubectl apply -f book-service/k8s/deployment.yaml
 
 apply-crm-service:
 	@echo "Applying Kubernetes configs for CRM Service..."
-	kubectl apply -f crm-service/k8s/deployment.yaml
 	kubectl apply -f crm-service/k8s/service.yaml
+	kubectl apply -f crm-service/k8s/deployment.yaml
 
 
 # Get service URLs (useful for checking EXTERNAL-IP)
@@ -66,10 +66,10 @@ get-urls:
 # Port forward (optional for local testing)
 port-forward:
 	@echo "Forwarding ports to local machine..."
-	kubectl port-forward service/customer-service 8082:3000 -n $(NAMESPACE) &
+	# kubectl port-forward service/customer-service 8082:3000 -n $(NAMESPACE) &
 	kubectl port-forward service/book-service 8080:3000 -n $(NAMESPACE) &
-	kubectl port-forward service/bff-web 8081:80 -n $(NAMESPACE) &
-	kubectl port-forward service/bff-mobile 8800:80 -n $(NAMESPACE) &
+	# kubectl port-forward service/bff-web 8081:80 -n $(NAMESPACE) &
+	# kubectl port-forward service/bff-mobile 8800:80 -n $(NAMESPACE) &
 
 # Clean up Kubernetes resources
 # clean:

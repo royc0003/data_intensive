@@ -16,6 +16,7 @@ spec:
       containers:
         - name: customer-service
           image: royc003/bookstore-api:3
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
         - env:
