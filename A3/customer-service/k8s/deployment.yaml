@@ -28,7 +28,7 @@ spec:
           periodSeconds: 30        # Less frequent checks
           timeoutSeconds: 10       # More time for response
           failureThreshold: 5      # More failures allowed
-        - env:
+          env:
             - name: DB_HOST
               value: bookstore-db-dev.cluster-cdljphha5o85.us-east-1.rds.amazonaws.com
             - name: DB_USER
