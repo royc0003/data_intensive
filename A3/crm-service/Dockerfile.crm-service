@@ -7,8 +7,12 @@ RUN apt-get update \
         libmariadb3 \
         libmariadb-dev \
         build-essential \
-        netcat-openbsd \
-    && rm -rf /var/lib/apt/lists/*
+            netcat-openbsd \
+            gcc \
+            libffi-dev \
+            libssl-dev \
+            libsasl2-dev \
+            && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 COPY requirements.txt .
