@@ -46,6 +46,10 @@ spec:
             # Add the recommendation service URL directly here
             - name: RECOMMENDATION_SERVICE_URL
               value: "http://3.130.6.49:80"
+            - name: BOOKS_SERVICE_URL
+              value: "http://afd57170d7ee842cfa042958e462e217-576919927.us-east-1.elb.amazonaws.com:3000"
+            - name: CUSTOMERS_SERVICE_URL
+              value: "http://acc74c3abafb044939ed6ca6c7c7701d-83208074.us-east-1.elb.amazonaws.com:3000"
       volumes:
         - name: circuit-breaker-volume
           emptyDir: {}
