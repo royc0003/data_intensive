@@ -15,9 +15,19 @@ spec:
     spec:
       containers:
         - name: crm-service
-          image: <your-dockerhub-username>/crm-service:latest
+          image: royc003/bookstore-api:5
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
+          # Add probes
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 3000
+            initialDelaySeconds: 45  # Increased delay
+            periodSeconds: 30        # Less frequent checks
+            timeoutSeconds: 10       # More time for response
+            failureThreshold: 5      # More failures allowed
           env:
             - name: SMTP_USER
               valueFrom:

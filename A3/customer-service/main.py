@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException, Header, Response, Query, status, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from services.shared.kafka_broker import send_customer_event
+import logging
 from pydantic import BaseModel, constr, condecimal, conint, EmailStr, validator, ValidationError
 from typing import Optional
 import mariadb
@@ -17,6 +19,9 @@ app = FastAPI()
 # JWT validation constants
 VALID_SUBJECTS = {"starlord", "gamora", "drax", "rocket", "groot"}
 VALID_ISSUER = "cmu.edu"
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 # Determine if this is a BFF service based on port
 # IS_BFF_SERVICE = os.getenv("SERVICE_TYPE", "80") == "80"
@@ -369,7 +374,7 @@ async def add_customer(
         response.headers["Location"] = f"/customers/{new_id}"
 
         # Return the customer data directly
-        return {
+        customer_data = {
             "id": new_id,
             "userId": customer.userId,
             "name": customer.name,
@@ -380,6 +385,14 @@ async def add_customer(
             "state": customer.state,
             "zipcode": customer.zipcode
         }
+        
+        try:
+            logger.info(f"Sending customer event: {customer_data}")
+            send_customer_event(customer_data)
+        except Exception as e:
+            print(f"Error sending customer event: {e}")
+            
+        return customer_data
 
     except HTTPException as e:
         raise e

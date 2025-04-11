@@ -20,13 +20,13 @@ build:
 	docker build -f bff-mobile/Dockerfile.mobile-bff -t ${DOCKER_REGISTRY}/bookstore-api:2 .
 	docker build -f customer-service/Dockerfile.customer-service -t ${DOCKER_REGISTRY}/bookstore-api:3 .
 	docker build -f book-service/Dockerfile.book-service -t ${DOCKER_REGISTRY}/bookstore-api:4 .
-
+	docker build -f crm-service/Dockerfile.crm-service -t ${DOCKER_REGISTRY}/bookstore-api:5 .
 push:
 	docker push ${DOCKER_REGISTRY}/bookstore-api:1
 	docker push ${DOCKER_REGISTRY}/bookstore-api:2
 	docker push ${DOCKER_REGISTRY}/bookstore-api:3
 	docker push ${DOCKER_REGISTRY}/bookstore-api:4
-
+	docker push ${DOCKER_REGISTRY}/bookstore-api:5
 # Apply Kubernetes configuration files
 apply:
 	@echo "Applying Kubernetes configs..."

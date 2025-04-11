@@ -1,0 +1,17 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Create the correct directory structure for relative imports
+RUN mkdir -p /app/services/shared
+
+# Copy shared modules
+COPY archive/services/shared/ /app/services/shared/
+# Create __init__.py files to make them proper packages
+RUN touch /app/services/shared/__init__.py
+
+COPY crm-service/main.py .
+
+CMD ["python", "main.py"]
