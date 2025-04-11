@@ -6,17 +6,21 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, constr, condecimal, conint, EmailStr, validator, ValidationError
 from services.shared.models import RelatedBook
+from services.shared.circuit_breaker import init_circuit_state, is_circuit_open, open_circuit, close_circuit
 from typing import Optional
 import mariadb
 import os
 import time
 from decimal import Decimal
+import logging
 import jwt
 from datetime import datetime
 import json
 from jwt_validator import validate_jwt_token
 
 app = FastAPI()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # JWT validation constants
 VALID_SUBJECTS = {"starlord", "gamora", "drax", "rocket", "groot"}
@@ -57,6 +61,11 @@ async def validate_client_type(x_client_type: Optional[str] = Header(None)):
 #             )
 #         validate_jwt_token(authorization)
 #     return authorization
+
+@app.on_event("startup")
+async def startup_event():
+    init_circuit_state()
+    logger.info("✅ Circuit breaker state initialized.")
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
@@ -361,6 +370,14 @@ async def get_related_books(
     RECOMMENDATION_SERVICE_URL = os.getenv(
         "RECOMMENDATION_SERVICE_URL")
     
+    circuit_state = is_circuit_open()
+    
+    if circuit_state == "open":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service temporarily unavailable due to circuit breaker"
+        )
+    
     try:
         async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
             # Make request to recommendation service
@@ -372,6 +389,7 @@ async def get_related_books(
             if response.status_code == 200:
                 # Record successful call
                 # await circuit_breaker.record_success()
+                close_circuit()
                 
                 # Parse and return recommendations
                 recommendations = response.json()
@@ -382,12 +400,14 @@ async def get_related_books(
 
             elif response.status_code == 404:
                 # ISBN not found
+                close_circuit()
                 response.status_code = status.HTTP_204_NO_CONTENT
                 return []
 
             else:
                 # Handle unexpected response
                 # await circuit_breaker.record_failure()
+                open_circuit()
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
                     detail="Unexpected response from recommendation service"
@@ -396,6 +416,7 @@ async def get_related_books(
     except httpx.TimeoutException:
         # Handle timeout
         # await circuit_breaker.record_failure()
+        open_circuit()
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail="Recommendation service timed out"
@@ -404,6 +425,7 @@ async def get_related_books(
     except Exception as e:
         # Handle other errors
         # await circuit_breaker.record_failure()
+        open_circuit()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error accessing recommendation service: {str(e)}"
