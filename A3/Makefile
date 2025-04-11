@@ -54,7 +54,7 @@ apply-book-service:
 
 apply-crm-service:
 	@echo "Applying Kubernetes configs for CRM Service..."
-	# kubectl apply -f crm-service/k8s/service.yaml
+	kubectl apply -f crm-service/k8s/service.yaml
 	kubectl apply -f crm-service/k8s/deployment.yaml
 
 apply-crm-secrets:
