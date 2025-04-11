@@ -24,7 +24,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: smtp-credentials
-                  key: username
+                  key: user
             - name: SMTP_PASS
               valueFrom:
                 secretKeyRef:
