@@ -57,6 +57,10 @@ apply-crm-service:
 	kubectl apply -f crm-service/k8s/service.yaml
 	kubectl apply -f crm-service/k8s/deployment.yaml
 
+apply-crm-screts:
+	@echo "Applying secrets for CRM Service..."
+	kubectl apply -f crm-service/k8s/secrets.yaml
+
 
 # Get service URLs (useful for checking EXTERNAL-IP)
 get-urls:
