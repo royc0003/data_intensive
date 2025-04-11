@@ -10,4 +10,4 @@ spec:
     - protocol: TCP
       port: 3000       # Service port exposed internally
       targetPort: 3000 # Port your app listens on
-  type: ClusterIP      # Internal service (use LoadBalancer if you want public access)
+  type: LoadBalancer      # Internal service (use LoadBalancer if you want public access)
