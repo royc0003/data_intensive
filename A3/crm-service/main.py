@@ -4,6 +4,10 @@ import json
 import os
 from email.message import EmailMessage
 import aiosmtplib
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 KAFKA_BROKERS = "3.129.102.184:9092,18.118.230.221:9093,3.130.6.49:9094"
 TOPIC_NAME = "yourandrewid.customer.evt"
@@ -40,11 +44,13 @@ async def consume_loop():
             await asyncio.sleep(1)
             continue
         try:
+            logger.info(f"Processing message: {msg.value()}")
             data = json.loads(msg.value())
+            logger.info(f"Sending email to: {data['userId']}")
             await send_email(data)
             consumer.commit(msg)
         except Exception as e:
-            print(f"Failed to process message: {e}")
+            logger.error(f"Failed to process message: {e}")
 
 if __name__ == "__main__":
     asyncio.run(consume_loop())
