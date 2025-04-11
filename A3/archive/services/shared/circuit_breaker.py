@@ -1,6 +1,10 @@
 import os
 import json
 import time
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 CIRCUIT_BREAKER_THRESHOLD = 5  # Number of failures before opening circuit
 CIRCUIT_BREAKER_TIMEOUT = 60   # Seconds to keep circuit open
@@ -37,3 +41,20 @@ def open_circuit():
 
 def close_circuit():
     save_circuit_state({"state": "closed", "last_failure": 0})
+
+def handle_result(success: bool):
+    """
+    Called after a test call during half-open, or during a normal request.
+    """
+    state = load_circuit_state()
+
+    if state["state"] == "half-open":
+        if success:
+            logger.info("✅ External service succeeded in HALF-OPEN state. Closing circuit.")
+            close_circuit()
+        else:
+            logger.warning("❌ External service failed in HALF-OPEN state. Reopening circuit.")
+            open_circuit()
+    elif state["state"] == "closed" and not success:
+        logger.warning("❌ Timeout detected. Opening circuit.")
+        open_circuit()

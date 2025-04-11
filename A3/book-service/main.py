@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, constr, condecimal, conint, EmailStr, validator, ValidationError
 from services.shared.models import RelatedBook
-from services.shared.circuit_breaker import init_circuit_state, is_circuit_open, open_circuit, close_circuit
+from services.shared.circuit_breaker import init_circuit_state, is_circuit_open, open_circuit, close_circuit, handle_result
 from typing import Optional
 import mariadb
 import os
@@ -31,7 +31,7 @@ VALID_ISSUER = "cmu.edu"
 CIRCUIT_BREAKER_THRESHOLD = 5  # Number of failures before opening circuit
 CIRCUIT_BREAKER_TIMEOUT = 60   # Seconds to keep circuit open
 CIRCUIT_BREAKER_FILE = "/mnt/circuit/circuit_state.json"
-REQUEST_TIMEOUT = 5.0  # Timeout for external service calls in seconds
+REQUEST_TIMEOUT = 3.0  # Timeout for external service calls in seconds
     
 
 # Determine if this is a BFF service based on port
@@ -389,7 +389,7 @@ async def get_related_books(
             if response.status_code == 200:
                 # Record successful call
                 # await circuit_breaker.record_success()
-                close_circuit()
+                handle_result(success=True)
                 
                 # Parse and return recommendations
                 recommendations = response.json()
@@ -400,14 +400,14 @@ async def get_related_books(
 
             elif response.status_code == 404:
                 # ISBN not found
-                close_circuit()
+                handle_result(success=True)
                 response.status_code = status.HTTP_204_NO_CONTENT
                 return []
 
             else:
                 # Handle unexpected response
                 # await circuit_breaker.record_failure()
-                open_circuit()
+                handle_result(success=False)
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
                     detail="Unexpected response from recommendation service"
@@ -416,7 +416,7 @@ async def get_related_books(
     except httpx.TimeoutException:
         # Handle timeout
         # await circuit_breaker.record_failure()
-        open_circuit()
+        handle_result(success=False)
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail="Recommendation service timed out"
@@ -425,7 +425,7 @@ async def get_related_books(
     except Exception as e:
         # Handle other errors
         # await circuit_breaker.record_failure()
-        open_circuit()
+        handle_result(success=False)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error accessing recommendation service: {str(e)}"
