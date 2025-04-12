@@ -393,13 +393,11 @@ async def add_customer(
             "state": customer.state,
             "zipcode": customer.zipcode
         }
-        logger.info("Test test")
         try:
             logger.info(f"Sending customer event: {customer_data}")
             send_customer_event(customer_data)
         except Exception as e:
             logger.info(f"Error sending customer event: {e}")
-            
         return customer_data
 
     except HTTPException as e:

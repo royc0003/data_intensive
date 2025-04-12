@@ -43,7 +43,7 @@ COPY customer-service/main.py .
 COPY jwt_validator.py .
 
 # Copy application code
-COPY . .
+# COPY . .
 
 # Copy and make the entrypoint script executable
 COPY docker-entrypoint.sh .

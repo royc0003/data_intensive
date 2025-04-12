@@ -30,7 +30,7 @@ def send_customer_event(customer_data: dict):
 
 # if __name__ == "__main__":
 #     test_customer = {
-#         "userId": "starlord2002@gmail.com",
+#         "userId": "starlord2882@gmail.com",
 #         "name": "Star Lord",
 #         "phone": "+14122144122",
 #         "address": "48 Galaxy Rd",
