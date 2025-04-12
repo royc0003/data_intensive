@@ -150,6 +150,11 @@ async def forward_request(method: str, url: str, headers: dict, **kwargs):
                 # Log response
                 logger.info(f"Received {response.status_code} response from {url}")
                 
+                # Handle 204 No Content responses
+                if response.status_code == 204:
+                    logger.info("Received 204 No Content response")
+                    return 204, []
+                
                 # Handle 4xx error status codes - pass them through directly
                 if 400 <= response.status_code < 500:
                     try:
@@ -183,7 +188,11 @@ async def forward_request(method: str, url: str, headers: dict, **kwargs):
                     json_response = response.json()
                     return response.status_code, json_response
                 except Exception as e:
-                    logger.error(f"Failed to parse JSON response: {str(e)}")
+                    logger.info(f"Failed to parse JSON response: {str(e)}")
+                    # Handle 204 responses that weren't caught earlier (belt and suspenders approach)
+                    if response.status_code == 204 or not response.text:
+                        logger.info("Empty response detected, returning empty list")
+                        return 204, []
                     raise HTTPException(
                         status_code=status.HTTP_502_BAD_GATEWAY,
                         detail="Invalid response from backend service"
@@ -349,7 +358,8 @@ async def get_book(
 async def get_related_books(
     ISBN: str,
     x_client_type: str = Header(...),
-    authorization: str = Header(...)
+    authorization: str = Header(...),
+    response: Response = None
 ):
     # Validate headers
     await validate_client_type(x_client_type)
@@ -363,8 +373,12 @@ async def get_related_books(
     )
 
     if status_code == 204:
+        logger.info(f"204 No Content received for ISBN {ISBN}, returning empty list")
+        response.status_code = status.HTTP_204_NO_CONTENT
         return []
-        
+    
+    # Set response status code to match what came from the book service
+    response.status_code = status_code
     return data
 
 @app.post("/customers", status_code=status.HTTP_201_CREATED)

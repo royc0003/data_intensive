@@ -352,7 +352,7 @@ async def get_book(
 
 
 # Related books endpoint
-@app.get("/books/{ISBN}/related-books", response_model=List[RelatedBook])
+@app.get("/books/{ISBN}/related-books", response_model=List[RelatedBook], status_code=status.HTTP_200_OK)
 async def get_related_books(
     ISBN: str,
     response: Response,
@@ -369,7 +369,7 @@ async def get_related_books(
     # External service URL (replace with actual URL from Canvas)
     RECOMMENDATION_SERVICE_URL = os.getenv(
         "RECOMMENDATION_SERVICE_URL")
-    
+    logger.info(f"CURRENT RECOMMENDATION_SERVICE_URL: {RECOMMENDATION_SERVICE_URL}")
     circuit_state = is_circuit_open()
     
     if circuit_state == "open":
@@ -384,6 +384,8 @@ async def get_related_books(
             response = await client.get(
                 f"{RECOMMENDATION_SERVICE_URL}/recommended-titles/isbn/{ISBN}"
             )
+            
+            logger.info(f"RECOMMENDATION SERVICE RESPONSE HHI: {response.status_code}")
 
             # Handle different response scenarios
             if response.status_code == 200:
@@ -394,16 +396,12 @@ async def get_related_books(
                 # Parse and return recommendations
                 recommendations = response.json()
                 if not recommendations:
-                    response.status_code = status.HTTP_204_NO_CONTENT
-                    return []
+                    return Response(status_code=status.HTTP_204_NO_CONTENT)
                 return recommendations
-
-            elif response.status_code == 404:
-                # ISBN not found
+            elif response.status_code == 204:
                 handle_result(success=True)
-                response.status_code = status.HTTP_204_NO_CONTENT
-                return []
-
+                logger.info(f"204 NO CONTENT RESPONSE")
+                return Response(status_code=status.HTTP_204_NO_CONTENT)
             else:
                 # Handle unexpected response
                 # await circuit_breaker.record_failure()
