@@ -426,8 +426,9 @@ async def get_related_books(
         # Handle other errors
         # await circuit_breaker.record_failure()
         handle_result(success=False)
+        logger.info("Somehow we ended up here")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail=f"Error accessing recommendation service: {str(e)}"
         )
 
