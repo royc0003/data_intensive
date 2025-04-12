@@ -1,1 +1,4 @@
-http://bookstore-dev-ExternalALB-942901927.us-east-1.elb.amazonaws.com:80
+http://a9642fed2da474fe3a904d72c1da1b5c-464687371.us-east-1.elb.amazonaws.com:80
+http://ad22fbb2e28244fdba63b3303abe8b41-1216464725.us-east-1.elb.amazonaws.com:80
+royceang
+ediss.royceang@gmail.com
