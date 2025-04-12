@@ -27,3 +27,18 @@ def send_customer_event(customer_data: dict):
         callback=delivery_report
     )
     producer.flush()
+
+# if __name__ == "__main__":
+#     test_customer = {
+#         "userId": "starlord2002@gmail.com",
+#         "name": "Star Lord",
+#         "phone": "+14122144122",
+#         "address": "48 Galaxy Rd",
+#         "address2": "suite 4",
+#         "city": "Fargo",
+#         "state": "ND",
+#         "zipcode": "58102"
+#     }
+
+#     logger.info("Sending test Kafka message...")
+#     send_customer_event(test_customer)
