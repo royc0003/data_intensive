@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: book-service
+  namespace: bookstore-ns
+spec:
+  replicas: 1  # Critical for circuit breaker state consistency
+  selector:
+    matchLabels:
+      app: book-service
+  template:
+    metadata:
+      labels:
+        app: book-service
+    spec:
+      containers:
+        - name: book-service
+          image: royc003/bookstore-api:4
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          # Add probes
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 3000
+            initialDelaySeconds: 45  # Increased delay
+            periodSeconds: 30        # Less frequent checks
+            timeoutSeconds: 10       # More time for response
+            failureThreshold: 5      # More failures allowed
+          volumeMounts:
+            - name: circuit-breaker-volume
+              mountPath: /mnt/circuit
+          env:
+            - name: DB_HOST
+              value: bookstore-db-dev.cluster-csdxv2900nel.us-east-1.rds.amazonaws.com
+            - name: DB_USER
+              value: Bookstore
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: password
+            - name: DB_NAME
+              value: Bookstore
+            # Add the recommendation service URL directly here
+            - name: RECOMMENDATION_SERVICE_URL
+              value: "http://18.118.230.221:80"
+            - name: BOOKS_SERVICE_URL
+              value: "http://a01bfd4054733407e8caf806a82d9e56-1335591145.us-east-1.elb.amazonaws.com:3000"
+            - name: CUSTOMERS_SERVICE_URL
+              value: "http://ac251973c93cd4c1eb7e948721d2d2fb-610715989.us-east-1.elb.amazonaws.com:3000"
+      volumes:
+        - name: circuit-breaker-volume
+          emptyDir: {}

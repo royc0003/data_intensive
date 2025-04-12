@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm-service
+  namespace: bookstore-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crm-service
+  template:
+    metadata:
+      labels:
+        app: crm-service
+    spec:
+      containers:
+        - name: crm-service
+          image: royc003/bookstore-api:5
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: smtp-credentials
+                  key: user
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: smtp-credentials
+                  key: password

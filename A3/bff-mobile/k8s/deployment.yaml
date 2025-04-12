@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bff-mobile
+  namespace: bookstore-ns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bff-mobile
+  template:
+    metadata:
+      labels:
+        app: bff-mobile
+    spec:
+      containers:
+        - name: bff-mobile
+          image: royc003/bookstore-api:2 
+          env:
+            - name: BOOKS_SERVICE_URL
+              value: "http://a01bfd4054733407e8caf806a82d9e56-1335591145.us-east-1.elb.amazonaws.com:3000"
+            - name: CUSTOMERS_SERVICE_URL
+              value: "http://ac251973c93cd4c1eb7e948721d2d2fb-610715989.us-east-1.elb.amazonaws.com:3000"
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10

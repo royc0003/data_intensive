@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer-service
+  namespace: bookstore-ns
+spec:
+  selector:
+    app: customer-service
+  ports:
+    - protocol: TCP
+      port: 3000       # Service port exposed internally
+      targetPort: 3000 # Port your app listens on
+  type: LoadBalancer      # Internal service (use LoadBalancer if you want public access)

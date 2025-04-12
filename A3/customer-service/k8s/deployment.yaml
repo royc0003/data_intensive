@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-service
+  namespace: bookstore-ns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: customer-service
+  template:
+    metadata:
+      labels:
+        app: customer-service
+    spec:
+      containers:
+        - name: customer-service
+          image: royc003/bookstore-api:3
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          # Add probes
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 3000
+            initialDelaySeconds: 45  # Increased delay
+            periodSeconds: 30        # Less frequent checks
+            timeoutSeconds: 10       # More time for response
+            failureThreshold: 5      # More failures allowed
+          env:
+            - name: DB_HOST
+              value: bookstore-db-dev.cluster-csdxv2900nel.us-east-1.rds.amazonaws.com
+            - name: DB_USER
+              value: Bookstore
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: password
+            - name: DB_NAME
+              value: Bookstore
