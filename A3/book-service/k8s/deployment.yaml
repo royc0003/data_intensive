@@ -45,7 +45,7 @@ spec:
               value: Bookstore
             # Add the recommendation service URL directly here
             - name: RECOMMENDATION_SERVICE_URL
-              value: "http://3.130.6.49:80"
+              value: "http://18.118.230.221:80"
             - name: BOOKS_SERVICE_URL
               value: "http://a01bfd4054733407e8caf806a82d9e56-1335591145.us-east-1.elb.amazonaws.com:3000"
             - name: CUSTOMERS_SERVICE_URL
