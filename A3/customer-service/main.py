@@ -21,15 +21,15 @@ VALID_SUBJECTS = {"starlord", "gamora", "drax", "rocket", "groot"}
 VALID_ISSUER = "cmu.edu"
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
-handler = logging.StreamHandler(sys.stdout)  # <-- Explicit stdout
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
+# handler = logging.StreamHandler(sys.stdout)  # <-- Explicit stdout
+# formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
 
-# Prevent duplicate handlers if this file is reloaded
-if not logger.handlers:
-    logger.addHandler(handler)
+# # Prevent duplicate handlers if this file is reloaded
+# if not logger.handlers:
+#     logger.addHandler(handler)
 
 # Determine if this is a BFF service based on port
 # IS_BFF_SERVICE = os.getenv("SERVICE_TYPE", "80") == "80"
