@@ -12,10 +12,10 @@ logging.basicConfig(level=logging.INFO)
 KAFKA_BROKERS = "3.129.102.184:9092,18.118.230.221:9093,3.130.6.49:9094"
 TOPIC_NAME = "royceang.customer.evt"
 
-SMTP_USER = os.getenv("SMTP_USER")
-# SMTP_USER = "ediss.royceang@gmail.com"    
-SMTP_PASS = os.getenv("SMTP_PASS")
-# SMTP_PASS = "gtwahftxhwruvdft"
+# SMTP_USER = os.getenv("SMTP_USER")
+SMTP_USER = "ediss.royceang@gmail.com"    
+# SMTP_PASS = os.getenv("SMTP_PASS")
+SMTP_PASS = "gtwahftxhwruvdft"
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
 
@@ -51,6 +51,7 @@ async def consume_loop():
             data = json.loads(msg.value())
             logger.info(f"Sending email to: {data['userId']}")
             await send_email(data)
+            logger.info("EMAIL SENT")
             consumer.commit(msg)
         except Exception as e:
             logger.error(f"Failed to process message: {e}")
