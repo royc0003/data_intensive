@@ -12,8 +12,10 @@ logging.basicConfig(level=logging.INFO)
 KAFKA_BROKERS = "3.129.102.184:9092,18.118.230.221:9093,3.130.6.49:9094"
 TOPIC_NAME = "royceang.customer.evt"
 
-SMTP_USER = os.getenv("SMTP_USER")
-SMTP_PASS = os.getenv("SMTP_PASS")
+# SMTP_USER = os.getenv("SMTP_USER")
+SMTP_USER = "ediss.royceang@gmail.com"    
+# SMTP_PASS = os.getenv("SMTP_PASS")
+SMTP_PASS = "gtwahftxhwruvdft"
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
 
@@ -32,7 +34,7 @@ async def send_email(data):
     msg["Subject"] = "Activate your book store account"
     msg.set_content(f"""Dear {data['name']},
 
-Welcome to the Book store created by yourandrewid.
+Welcome to the Book store created by royceang.
 Exceptionally this time we won’t ask you to click a link to activate your account.""")
 
     await aiosmtplib.send(msg, hostname=SMTP_HOST, port=SMTP_PORT, start_tls=True, username=SMTP_USER, password=SMTP_PASS)
@@ -44,6 +46,7 @@ async def consume_loop():
             await asyncio.sleep(1)
             continue
         try:
+            print("HELLO HIHIH")
             logger.info(f"Processing message: {msg.value()}")
             data = json.loads(msg.value())
             logger.info(f"Sending email to: {data['userId']}")
